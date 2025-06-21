@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Calendar Background -->
+  <rect x="100" y="50" width="200" height="200" fill="#E8F9FF" rx="10"/>
+  <rect x="120" y="70" width="160" height="30" fill="#00B4D8"/>
+  <rect x="120" y="120" width="40" height="40" fill="#FFFFFF" stroke="#00B4D8"/>
+  <rect x="170" y="120" width="40" height="40" fill="#FFFFFF" stroke="#00B4D8"/>
+  <rect x="220" y="120" width="40" height="40" fill="#00B4D8"/>
+  
+  <!-- Person (Simplified) -->
+  <circle cx="300" cy="150" r="12" fill="#00B4D8"/>
+  <path d="M290 175 L310 175 L310 190 L290 190 Z" fill="#00B4D8"/>
+  
+  <!-- Question Mark -->
+  <text x="320" y="120" font-size="40" fill="#00B4D8">?</text>
+</svg> 
