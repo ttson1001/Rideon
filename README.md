@@ -135,3 +135,23 @@ General-purpose utility functions such as formatting dates, generating UUIDs, va
 ---
 
 This structure is flexible and can be adjusted as the application grows.
+
+## Backend API
+
+A minimal API built with ASP.NET Core is included in the `backend` folder. The API provides stub endpoints for authentication, vehicle listings, and bookings.
+
+### Building and running
+
+1. Install the [.NET SDK](https://dotnet.microsoft.com/download) (version 8.0 or later).
+2. Navigate to the `backend` directory.
+3. Run `dotnet run` to start the API on `https://localhost:5001` or `http://localhost:5000`.
+
+### Endpoints
+
+- `POST /auth/login` – returns a fake token and user information.
+- `POST /auth/register` – returns a fake token and created user.
+- `GET /vehicles` – retrieves a list of sample vehicles.
+- `GET /vehicles/{id}` – retrieves a vehicle by its id.
+- `POST /bookings` – submits a booking request and returns the created booking.
+
+These endpoints are placeholders intended for front‑end development and can be replaced with real implementations later.
