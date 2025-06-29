@@ -1,15 +1,19 @@
-
-import { useState, useRef, type KeyboardEvent } from "react"
-import { Send, Paperclip, ImageIcon, Smile } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useState, useRef, type KeyboardEvent } from "react";
+import { Send, Paperclip, ImageIcon, Smile } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MessageInputProps {
-  onSendMessage: (message: string) => void
-  onTyping?: (isTyping: boolean) => void
-  disabled?: boolean
-  placeholder?: string
+  onSendMessage: (message: string) => void;
+  onTyping?: (isTyping: boolean) => void;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
 export function MessageInput({
@@ -18,58 +22,58 @@ export function MessageInput({
   disabled = false,
   placeholder = "Nhập tin nhắn...",
 }: MessageInputProps) {
-  const [message, setMessage] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const typingTimeoutRef = useRef<NodeJS.Timeout>()
+  const [message, setMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
-      onSendMessage(message.trim())
-      setMessage("")
-      setIsTyping(false)
-      onTyping?.(false)
+      onSendMessage(message.trim());
+      setMessage("");
+      setIsTyping(false);
+      onTyping?.(false);
 
       // Reset textarea height
       if (textareaRef.current) {
-        textareaRef.current.style.height = "auto"
+        textareaRef.current.style.height = "auto";
       }
     }
-  }
+  };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
+      e.preventDefault();
+      handleSend();
     }
-  }
+  };
 
   const handleInputChange = (value: string) => {
-    setMessage(value)
+    setMessage(value);
 
     // Handle typing indicator
     if (!isTyping && value.trim()) {
-      setIsTyping(true)
-      onTyping?.(true)
+      setIsTyping(true);
+      onTyping?.(true);
     }
 
     // Clear previous timeout
     if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current)
+      clearTimeout(typingTimeoutRef.current);
     }
 
     // Set new timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
-      setIsTyping(false)
-      onTyping?.(false)
-    }, 1000)
+      setIsTyping(false);
+      onTyping?.(false);
+    }, 1000);
 
     // Auto-resize textarea
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }
+  };
 
   return (
     <div className="border-t bg-white p-4">
@@ -113,7 +117,11 @@ export function MessageInput({
           />
 
           {/* Emoji button */}
-          <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
+          >
             <Smile className="h-4 w-4" />
           </Button>
         </div>
@@ -129,5 +137,5 @@ export function MessageInput({
         </Button>
       </div>
     </div>
-  )
+  );
 }

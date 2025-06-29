@@ -1,13 +1,19 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { ArrowLeft, ArrowRight } from "lucide-react"
-import { Button } from "../../../../components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card"
-import { StepProgressBar } from "../../../../components/forms/step-progress-bar"
-import { MotorbikeFormField } from "../../../../components/forms/motorbike-form-field"
-import { UploadImages } from "../../../../components/forms/upload-images"
-import { IdentityUpload } from "../../../../components/forms/identity-upload"
-import { useToast } from "../../../../hooks/use-toast"
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Button } from "../../../../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../../components/ui/card";
+import { StepProgressBar } from "../../../../components/forms/step-progress-bar";
+import { MotorbikeFormField } from "../../../../components/forms/motorbike-form-field";
+import { UploadImages } from "../../../../components/forms/upload-images";
+import { IdentityUpload } from "../../../../components/forms/identity-upload";
+import { useToast } from "../../../../hooks/use-toast";
+import { createVehicle } from "@/components/api/dashboardService";
 
 const steps = [
   {
@@ -22,7 +28,7 @@ const steps = [
     title: "Xác nhận",
     description: "Gửi yêu cầu duyệt",
   },
-]
+];
 
 const brandOptions = [
   { value: "honda", label: "Honda" },
@@ -31,27 +37,27 @@ const brandOptions = [
   { value: "suzuki", label: "Suzuki" },
   { value: "sym", label: "SYM" },
   { value: "other", label: "Khác" },
-]
+];
 
 const vehicleTypeOptions = [
   { value: "tay_ga", label: "Tay ga" },
   { value: "con_tay", label: "Côn tay" },
   { value: "xe_so", label: "Xe số" },
   { value: "phan_khoi_lon", label: "Phân khối lớn" },
-]
+];
 
 const licenseTypeOptions = [
   { value: "a1", label: "Bằng A1" },
   { value: "a2", label: "Bằng A2" },
   { value: "a3", label: "Bằng A3" },
   { value: "any", label: "Bất kỳ" },
-]
+];
 
 export default function VehicleList() {
-  const navigate = useNavigate()
-  const { toast } = useToast()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -70,112 +76,138 @@ export default function VehicleList() {
     quantity: 1,
     requiresDeposit: true,
     depositAmount: 2000000,
-  })
+  });
 
-  const [images, setImages] = useState<File[]>([])
+  const [images, setImages] = useState<string[]>([]);
   const [documents, setDocuments] = useState<{
-    idCardFront?: File
-    idCardBack?: File
-    vehicleRegistration?: File
-    authorization?: File
-  }>({})
+    idCardFront?: string;
+    idCardBack?: string;
+    vehicleRegistration?: string;
+    authorization?: string;
+  }>({});
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateFormData = (field: string, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const validateStep1 = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Vui lòng nhập tên xe"
-    if (!formData.brand) newErrors.brand = "Vui lòng chọn hãng xe"
-    if (!formData.type) newErrors.type = "Vui lòng chọn loại xe"
-    if (!formData.licensePlate.trim()) newErrors.licensePlate = "Vui lòng nhập biển số xe"
-    if (!formData.description.trim()) newErrors.description = "Vui lòng nhập mô tả xe"
-    if (formData.pricePerDay <= 0) newErrors.pricePerDay = "Giá thuê phải lớn hơn 0"
-    if (!formData.licenseRequired) newErrors.licenseRequired = "Vui lòng chọn yêu cầu bằng lái"
+    if (!formData.name.trim()) newErrors.name = "Vui lòng nhập tên xe";
+    if (!formData.brand) newErrors.brand = "Vui lòng chọn hãng xe";
+    if (!formData.type) newErrors.type = "Vui lòng chọn loại xe";
+    if (!formData.licensePlate.trim())
+      newErrors.licensePlate = "Vui lòng nhập biển số xe";
+    if (!formData.description.trim())
+      newErrors.description = "Vui lòng nhập mô tả xe";
+    if (formData.pricePerDay <= 0)
+      newErrors.pricePerDay = "Giá thuê phải lớn hơn 0";
+    if (!formData.licenseRequired)
+      newErrors.licenseRequired = "Vui lòng chọn yêu cầu bằng lái";
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const validateStep2 = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (images.length < 3) {
-      newErrors.images = "Vui lòng tải lên ít nhất 3 ảnh xe"
+      newErrors.images = "Vui lòng tải lên ít nhất 3 ảnh xe";
     }
 
     if (!documents.idCardFront) {
-      newErrors.idCardFront = "Vui lòng tải ảnh CCCD mặt trước"
+      newErrors.idCardFront = "Vui lòng tải ảnh CCCD mặt trước";
     }
 
     if (!documents.idCardBack) {
-      newErrors.idCardBack = "Vui lòng tải ảnh CCCD mặt sau"
+      newErrors.idCardBack = "Vui lòng tải ảnh CCCD mặt sau";
     }
 
     if (!documents.vehicleRegistration) {
-      newErrors.vehicleRegistration = "Vui lòng tải ảnh đăng ký xe"
+      newErrors.vehicleRegistration = "Vui lòng tải ảnh đăng ký xe";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleNext = () => {
-    if (currentStep === 1 && !validateStep1()) return
-    if (currentStep === 2 && !validateStep2()) return
+    if (currentStep === 1 && !validateStep1()) return;
+    if (currentStep === 2 && !validateStep2()) return;
 
-    setCurrentStep((prev) => Math.min(prev + 1, steps.length))
-  }
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+  };
 
   const handlePrevious = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1))
-  }
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const ownerId = parseInt(localStorage.getItem("userId") || "0");
 
   const handleSubmit = async () => {
-    if (!validateStep2()) return
-
-    setIsSubmitting(true)
+    if (!validateStep2()) return;
+    setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await createVehicle({
+        name: formData.name,
+        brand: formData.brand,
+        type: formData.type,
+        year: formData.year,
+        licensePlate: formData.licensePlate,
+        description: formData.description,
+        pricePerDay: formData.pricePerDay,
+        licenseRequired: formData.licenseRequired,
+        minAge: formData.minAge,
+        quantity: formData.quantity,
+        ownerId: ownerId,
+        images: images,
+        idCardFrontURL: documents.idCardFront || "",
+        idCardBackURL: documents.idCardBack || "",
+        vehicleRegistrationURL: documents.vehicleRegistration || "",
+        authorizationURL: documents.authorization || null,
+      });
 
       toast({
         title: "Đăng xe thành công!",
-        description: "Xe của bạn đang được duyệt. Hệ thống sẽ phản hồi trong 24h.",
-      })
+        description:
+          "Xe của bạn đang được duyệt. Hệ thống sẽ phản hồi trong 24h.",
+      });
 
-      navigate("/dashboard/owner")
+      navigate("/dashboard/owner");
     } catch (error) {
       toast({
         title: "Có lỗi xảy ra",
         description: "Vui lòng thử lại sau",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/dashboard/owner" className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-4">
+          <Link
+            to="/dashboard/owner"
+            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-4"
+          >
             <ArrowLeft className="h-4 w-4" />
             Quay lại Dashboard
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">Đăng xe cho thuê</h1>
-          <p className="text-gray-600 mt-2">Điền thông tin chi tiết để đăng xe của bạn</p>
+          <p className="text-gray-600 mt-2">
+            Điền thông tin chi tiết để đăng xe của bạn
+          </p>
         </div>
 
         {/* Progress Bar */}
@@ -260,7 +292,9 @@ export default function VehicleList() {
                     name="licenseRequired"
                     type="select"
                     value={formData.licenseRequired}
-                    onChange={(value) => updateFormData("licenseRequired", value)}
+                    onChange={(value) =>
+                      updateFormData("licenseRequired", value)
+                    }
                     options={licenseTypeOptions}
                     placeholder="Chọn loại bằng lái"
                     required
@@ -293,15 +327,29 @@ export default function VehicleList() {
             {/* Step 2: Images and Documents */}
             {currentStep === 2 && (
               <div className="space-y-8">
-                <UploadImages images={images} onImagesChange={setImages} maxImages={5} minImages={3} />
-                {errors.images && <p className="text-sm text-red-500">{errors.images}</p>}
+                <UploadImages
+                  images={images}
+                  onImagesChange={setImages}
+                  maxImages={5}
+                  minImages={3}
+                />
+                {errors.images && (
+                  <p className="text-sm text-red-500">{errors.images}</p>
+                )}
 
-                <IdentityUpload documents={documents} onDocumentsChange={setDocuments} />
-                {(errors.idCardFront || errors.idCardBack || errors.vehicleRegistration) && (
+                <IdentityUpload
+                  documents={documents}
+                  onDocumentsChange={setDocuments}
+                />
+                {(errors.idCardFront ||
+                  errors.idCardBack ||
+                  errors.vehicleRegistration) && (
                   <div className="text-sm text-red-500 space-y-1">
                     {errors.idCardFront && <p>{errors.idCardFront}</p>}
                     {errors.idCardBack && <p>{errors.idCardBack}</p>}
-                    {errors.vehicleRegistration && <p>{errors.vehicleRegistration}</p>}
+                    {errors.vehicleRegistration && (
+                      <p>{errors.vehicleRegistration}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -311,7 +359,9 @@ export default function VehicleList() {
             {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-4">Xác nhận thông tin</h3>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-4">
+                    Xác nhận thông tin
+                  </h3>
 
                   <div className="grid md:grid-cols-2 gap-4 text-sm">
                     <div>
@@ -320,7 +370,12 @@ export default function VehicleList() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-700">Hãng xe:</p>
-                      <p className="text-gray-900">{brandOptions.find((b) => b.value === formData.brand)?.label}</p>
+                      <p className="text-gray-900">
+                        {
+                          brandOptions.find((b) => b.value === formData.brand)
+                            ?.label
+                        }
+                      </p>
                     </div>
                     <div>
                       <p className="font-medium text-gray-700">Năm sản xuất:</p>
@@ -328,7 +383,7 @@ export default function VehicleList() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-700">Giá thuê:</p>
-                      <p className="text-gray-900 font-semibold text-blue-600">
+                      <p className="font-semibold text-blue-600">
                         {formData.pricePerDay.toLocaleString()}đ/ngày
                       </p>
                     </div>
@@ -357,8 +412,13 @@ export default function VehicleList() {
                       <p className="font-medium mb-1">Lưu ý:</p>
                       <ul className="space-y-1 text-xs">
                         <li>• Xe sẽ được admin duyệt trong vòng 24 giờ</li>
-                        <li>• Bạn sẽ nhận thông báo qua email và app khi có kết quả</li>
-                        <li>• Thông tin có thể được chỉnh sửa trước khi duyệt</li>
+                        <li>
+                          • Bạn sẽ nhận thông báo qua email và app khi có kết
+                          quả
+                        </li>
+                        <li>
+                          • Thông tin có thể được chỉnh sửa trước khi duyệt
+                        </li>
                       </ul>
                     </div>
                   </div>
@@ -370,7 +430,11 @@ export default function VehicleList() {
 
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1}>
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Quay lại
           </Button>
@@ -382,7 +446,11 @@ export default function VehicleList() {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700">
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-green-600 hover:bg-green-700"
+              >
                 {isSubmitting ? "Đang gửi..." : "Gửi yêu cầu duyệt"}
               </Button>
             )}
@@ -390,5 +458,5 @@ export default function VehicleList() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,23 +1,34 @@
-import { useState } from "react"
-import { Menu, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { NavLink } from "./nav-link"
-import { NotificationIcon } from "./notification-icon"
-import { UserAvatarMenu, type User } from "./user-avatar-menu"
-import { AuthButtons } from "./auth-buttons"
-import { LanguageThemeSwitcher } from "../language-theme-switcher"
-import { useApp } from "@/contexts/app-context"
+import { useState } from "react";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { NavLink } from "./nav-link";
+import { NotificationIcon } from "./notification-icon";
+import { UserAvatarMenu, type User } from "./user-avatar-menu";
+import { AuthButtons } from "./auth-buttons";
+import { LanguageThemeSwitcher } from "../language-theme-switcher";
+import { useApp } from "@/contexts/app-context";
 
 interface MobileMenuProps {
-  currentUser?: User
-  unreadNotificationsCount?: number
-  onLogout?: () => void
+  currentUser?: User;
+  unreadNotificationsCount?: number;
+  onLogout?: () => void;
 }
 
-export function MobileMenu({ currentUser, unreadNotificationsCount = 0, onLogout }: MobileMenuProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const { t, language } = useApp()
+export function MobileMenu({
+  currentUser,
+  unreadNotificationsCount = 0,
+  onLogout,
+}: MobileMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { t, language } = useApp();
 
   return (
     <div className="md:hidden" key={language}>
@@ -31,9 +42,7 @@ export function MobileMenu({ currentUser, unreadNotificationsCount = 0, onLogout
         <SheetContent side="right" className="w-80 z-50 flex flex-col">
           <SheetHeader>
             <SheetTitle>{t("nav.menu")}</SheetTitle>
-            <SheetDescription>
-              {t("nav.menuDescription")}
-            </SheetDescription>
+            <SheetDescription>{t("nav.menuDescription")}</SheetDescription>
           </SheetHeader>
           <div className="flex flex-col h-full">
             {/* Navigation Links */}
@@ -62,7 +71,9 @@ export function MobileMenu({ currentUser, unreadNotificationsCount = 0, onLogout
               {currentUser ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{t("nav.notifications")}</span>
+                    <span className="text-sm font-medium">
+                      {t("nav.notifications")}
+                    </span>
                     <NotificationIcon count={unreadNotificationsCount} />
                   </div>
                   <UserAvatarMenu user={currentUser} onLogout={onLogout} />
@@ -75,5 +86,5 @@ export function MobileMenu({ currentUser, unreadNotificationsCount = 0, onLogout
         </SheetContent>
       </Sheet>
     </div>
-  )
+  );
 }

@@ -4,7 +4,6 @@ import { Navbar } from "@/components/navbar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppProvider } from "@/contexts/app-context";
 import { Toaster } from "@/components/ui/toaster";
-import { useAuth } from "@/contexts/auth-context";
 import { Outlet } from "react-router-dom";
 
 interface User {
@@ -16,31 +15,30 @@ interface User {
 }
 
 const Layout: FC = () => {
-  const { user, loading } = useAuth();
+  const userId = localStorage.getItem("userId") || "";
+  const role = (localStorage.getItem("role") || "renter") as
+    | "renter"
+    | "owner"
+    | "admin";
 
-  // Convert Firebase user to our User type
-  const currentUser = user ? {
-    id: user.uid,
-    name: user.displayName || 'User',
-    email: user.email || '',
-    avatar: user.photoURL || undefined,
-    role: 'renter' as const // Type assertion to ensure role is one of the allowed values
-  } : undefined;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const currentUser: User | undefined = userId
+    ? {
+        id: userId,
+        name: "User", // hoặc lấy từ token nếu có thêm
+        email: "", // có thể sửa nếu bạn lưu thêm
+        avatar: undefined,
+        role: role,
+      }
+    : undefined;
 
   return (
     <div className="min-h-screen">
       <AppProvider>
         <ThemeProvider>
-          <Navbar currentUser={currentUser} unreadNotificationsCount={0} />
-          <main className="pt-16">
+          {currentUser?.role !== "admin" && (
+            <Navbar currentUser={currentUser} unreadNotificationsCount={0} />
+          )}
+          <main className={currentUser?.role !== "admin" ? "pt-16" : ""}>
             <Outlet />
           </main>
           <Toaster />

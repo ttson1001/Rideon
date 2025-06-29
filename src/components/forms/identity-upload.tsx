@@ -1,25 +1,29 @@
-import { Upload, FileText, CheckCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/hooks/use-toast"
+import { Upload, FileText, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { uploadFile } from "../api/dashboardService";
 
 interface IdentityUploadProps {
   documents: {
-    idCardFront?: File
-    idCardBack?: File
-    vehicleRegistration?: File
-    authorization?: File
-  }
+    idCardFront?: string;
+    idCardBack?: string;
+    vehicleRegistration?: string;
+    authorization?: string;
+  };
   onDocumentsChange: (documents: {
-    idCardFront?: File
-    idCardBack?: File
-    vehicleRegistration?: File
-    authorization?: File
-  }) => void
+    idCardFront?: string;
+    idCardBack?: string;
+    vehicleRegistration?: string;
+    authorization?: string;
+  }) => void;
 }
 
-export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadProps) {
-  const { toast } = useToast()
+export function IdentityUpload({
+  documents,
+  onDocumentsChange,
+}: IdentityUploadProps) {
+  const { toast } = useToast();
 
   const validateFile = (file: File): boolean => {
     if (!file.type.startsWith("image/")) {
@@ -27,8 +31,8 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
         title: "Lỗi định dạng file",
         description: "Chỉ chấp nhận file ảnh",
         variant: "destructive",
-      })
-      return false
+      });
+      return false;
     }
 
     if (file.size > 10 * 1024 * 1024) {
@@ -36,21 +40,31 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
         title: "File quá lớn",
         description: "Kích thước file không được vượt quá 10MB",
         variant: "destructive",
-      })
-      return false
+      });
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
-  const handleFileUpload = (type: keyof typeof documents, file: File) => {
-    if (validateFile(file)) {
+  const handleFileUpload = async (type: keyof typeof documents, file: File) => {
+    if (!validateFile(file)) return;
+
+    try {
+      const url = await uploadFile(file);
       onDocumentsChange({
         ...documents,
-        [type]: file,
-      })
+        [type]: url,
+      });
+      toast({ title: "Tải lên thành công" });
+    } catch (err) {
+      toast({
+        title: "Tải lên thất bại",
+        description: "Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
   const DocumentUploadCard = ({
     title,
@@ -58,18 +72,22 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
     type,
     required = true,
   }: {
-    title: string
-    description: string
-    type: keyof typeof documents
-    required?: boolean
+    title: string;
+    description: string;
+    type: keyof typeof documents;
+    required?: boolean;
   }) => {
-    const file = documents[type]
+    const fileUrl = documents[type];
 
     return (
       <Card className="border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            {file ? <CheckCircle className="h-4 w-4 text-green-500" /> : <FileText className="h-4 w-4" />}
+            {fileUrl ? (
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
             {title}
             {required && <span className="text-red-500">*</span>}
           </CardTitle>
@@ -77,19 +95,29 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
         <CardContent className="pt-0">
           <p className="text-xs text-gray-600 mb-3">{description}</p>
 
-          {file ? (
+          {fileUrl ? (
             <div className="space-y-2">
-              <p className="text-sm text-green-600 font-medium">✓ Đã tải lên: {file.name}</p>
-              <Button type="button" variant="outline" size="sm" asChild className="w-full">
+              <img
+                src={fileUrl}
+                alt={title}
+                className="w-full h-auto rounded-md"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                asChild
+                className="w-full"
+              >
                 <label className="cursor-pointer">
                   Thay đổi file
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
-                      const newFile = e.target.files?.[0]
+                      const newFile = e.target.files?.[0];
                       if (newFile) {
-                        handleFileUpload(type, newFile)
+                        handleFileUpload(type, newFile);
                       }
                     }}
                     className="hidden"
@@ -98,7 +126,13 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
               </Button>
             </div>
           ) : (
-            <Button type="button" variant="outline" size="sm" asChild className="w-full">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              asChild
+              className="w-full"
+            >
               <label className="cursor-pointer flex items-center gap-2">
                 <Upload className="h-4 w-4" />
                 Tải lên
@@ -106,9 +140,9 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const newFile = e.target.files?.[0]
+                    const newFile = e.target.files?.[0];
                     if (newFile) {
-                      handleFileUpload(type, newFile)
+                      handleFileUpload(type, newFile);
                     }
                   }}
                   className="hidden"
@@ -118,14 +152,16 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
           )}
         </CardContent>
       </Card>
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium mb-2">Giấy tờ xác thực</h3>
-        <p className="text-sm text-gray-600">Tải lên các giấy tờ cần thiết để xác thực danh tính và quyền sở hữu xe</p>
+        <p className="text-sm text-gray-600">
+          Tải lên các giấy tờ cần thiết để xác thực danh tính và quyền sở hữu xe
+        </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -134,19 +170,16 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
           description="Ảnh rõ nét, đầy đủ 4 góc của CCCD/CMND"
           type="idCardFront"
         />
-
         <DocumentUploadCard
           title="CCCD/CMND mặt sau"
           description="Ảnh rõ nét, đầy đủ 4 góc của CCCD/CMND"
           type="idCardBack"
         />
-
         <DocumentUploadCard
           title="Đăng ký xe (Cà vẹt)"
           description="Giấy đăng ký xe máy còn hiệu lực"
           type="vehicleRegistration"
         />
-
         <DocumentUploadCard
           title="Giấy ủy quyền (nếu có)"
           description="Nếu không phải chính chủ xe"
@@ -170,5 +203,5 @@ export function IdentityUpload({ documents, onDocumentsChange }: IdentityUploadP
         </div>
       </div>
     </div>
-  )
+  );
 }

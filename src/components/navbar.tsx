@@ -1,51 +1,50 @@
-
-import { useState, useEffect } from 'react'
-import { Logo } from "./navbar/logo"
-import { NavLink } from "./navbar/nav-link"
-import { NotificationIcon } from "./navbar/notification-icon"
-import { UserAvatarMenu, type User } from "./navbar/user-avatar-menu"
-import { AuthButtons } from "./navbar/auth-buttons"
-import { MobileMenu } from "./navbar/mobile-menu"
-import { LanguageThemeSwitcher } from "./language-theme-switcher"
-import { useToast } from "@/hooks/use-toast"
-import { useApp } from "@/contexts/app-context"
-import { useAuth } from "@/contexts/auth-context"
+import { useState, useEffect } from "react";
+import { Logo } from "./navbar/logo";
+import { NavLink } from "./navbar/nav-link";
+import { NotificationIcon } from "./navbar/notification-icon";
+import { UserAvatarMenu, type User } from "./navbar/user-avatar-menu";
+import { AuthButtons } from "./navbar/auth-buttons";
+import { MobileMenu } from "./navbar/mobile-menu";
+import { LanguageThemeSwitcher } from "./language-theme-switcher";
+import { useApp } from "@/contexts/app-context";
+import { useAuth } from "@/contexts/auth-context";
 
 interface NavbarProps {
-  currentUser?: User
-  unreadNotificationsCount?: number
+  currentUser?: User;
+  unreadNotificationsCount?: number;
 }
 
-export function Navbar({ currentUser, unreadNotificationsCount = 0 }: NavbarProps) {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const { toast } = useToast()
-  const { t, language } = useApp()
-  const { logout } = useAuth()
+export function Navbar({
+  currentUser,
+  unreadNotificationsCount = 0,
+}: NavbarProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { t, language } = useApp();
+  const { logout } = useAuth();
 
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
-    }
+      setIsScrolled(window.scrollY > 0);
+    };
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     try {
-      await logout()
+      await logout();
       // Redirect to home page after successful logout
-      window.location.href = '/'
+      window.location.href = "/";
     } catch (error) {
-      console.error('Error during logout:', error)
+      console.error("Error during logout:", error);
     }
-  }
-
+  };
   return (
     <nav
       className={`fixed top-0 z-50 w-full bg-white dark:bg-gray-900 transition-shadow duration-200 ${
-        isScrolled ? 'shadow-md' : 'shadow-sm'
+        isScrolled ? "shadow-md" : "shadow-sm"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -93,5 +92,5 @@ export function Navbar({ currentUser, unreadNotificationsCount = 0 }: NavbarProp
         </div>
       </div>
     </nav>
-  )
+  );
 }

@@ -1,140 +1,133 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Eye, EyeOff, Facebook, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useAuth } from "@/contexts/auth-context"
-import { toast } from "react-hot-toast"
-import { useNavigate } from "react-router-dom"
-
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Facebook, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/contexts/auth-context";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { register } from "../api/authService";
 interface SignupFormProps {
-  onOAuthLogin: (provider: "facebook" | "google") => void
-  onSwitchToLogin: () => void
+  onOAuthLogin: (provider: "facebook" | "google") => void;
+  onSwitchToLogin: () => void;
 }
 
 export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
-  const { signInWithGoogle, createUserWithEmailAndPassword, user, loading } = useAuth()
-  const navigate = useNavigate()
+  const { signInWithGoogle, user, loading } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     name: "",
     password: "",
     confirmPassword: "",
     referralCode: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [acceptTerms, setAcceptTerms] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // Redirect khi đăng ký thành công
   useEffect(() => {
     if (user && !loading) {
-      navigate('/dashboard/owner')
+      navigate("/dashboard/owner");
     }
-  }, [user, loading, navigate])
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (validateForm()) {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        await createUserWithEmailAndPassword(formData.email, formData.password, formData.name)
-        toast.success('Đăng ký thành công!')
-      } catch (error: any) {
-        console.error('Error signing up:', error)
-        let errorMessage = 'Đăng ký thất bại. Vui lòng thử lại.'
-        
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-            errorMessage = 'Email này đã được sử dụng.'
-            break
-          case 'auth/invalid-email':
-            errorMessage = 'Email không hợp lệ.'
-            break
-          case 'auth/operation-not-allowed':
-            errorMessage = 'Đăng ký bằng email/password không được bật.'
-            break
-          case 'auth/weak-password':
-            errorMessage = 'Mật khẩu quá yếu.'
-            break
+        const response = await register({
+          email: formData.email,
+          name: formData.name,
+          password: formData.password,
+          role: "renter",
+        });
+
+        if (response.success) {
+          toast.success("Đăng ký thành công!");
+          onSwitchToLogin();
+        } else {
+          toast.error(response.message || "Đăng ký thất bại");
+          setErrors((prev) => ({
+            ...prev,
+            form: response.message || "Đăng ký thất bại",
+          }));
         }
-        
-        toast.error(errorMessage)
-        setErrors(prev => ({
-          ...prev,
-          form: errorMessage
-        }))
+      } catch (error) {
+        toast.error("Đăng ký thất bại. Vui lòng thử lại.");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const handleGoogleSignup = async () => {
-    setIsGoogleLoading(true)
+    setIsGoogleLoading(true);
     try {
-      await signInWithGoogle()
+      await signInWithGoogle();
     } catch (error: any) {
-      console.error('Error signing up with Google:', error)
+      console.error("Error signing up with Google:", error);
       // Error is already handled in auth context
     } finally {
-      setIsGoogleLoading(false)
+      setIsGoogleLoading(false);
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
-      newErrors.email = "Email là bắt buộc"
+      newErrors.email = "Email là bắt buộc";
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Email không đúng định dạng"
+      newErrors.email = "Email không đúng định dạng";
     }
 
     // Name validation
     if (!formData.name.trim()) {
-      newErrors.name = "Tên hiển thị là bắt buộc"
+      newErrors.name = "Tên hiển thị là bắt buộc";
     } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Tên hiển thị phải có ít nhất 2 ký tự"
+      newErrors.name = "Tên hiển thị phải có ít nhất 2 ký tự";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Mật khẩu là bắt buộc"
+      newErrors.password = "Mật khẩu là bắt buộc";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự"
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu"
+      newErrors.confirmPassword = "Vui lòng nhập lại mật khẩu";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Mật khẩu không khớp"
+      newErrors.confirmPassword = "Mật khẩu không khớp";
     }
 
     // Terms validation
     if (!acceptTerms) {
-      newErrors.terms = "Bạn phải chấp nhận điều khoản sử dụng"
+      newErrors.terms = "Bạn phải chấp nhận điều khoản sử dụng";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
@@ -152,10 +145,14 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
-            className={`border p-2 rounded-md w-full ${errors.email ? "border-red-500" : ""}`}
+            className={`border p-2 rounded-md w-full ${
+              errors.email ? "border-red-500" : ""
+            }`}
             placeholder="Nhập địa chỉ email"
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* Name */}
@@ -166,10 +163,14 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
             type="text"
             value={formData.name}
             onChange={(e) => handleInputChange("name", e.target.value)}
-            className={`border p-2 rounded-md w-full ${errors.name ? "border-red-500" : ""}`}
+            className={`border p-2 rounded-md w-full ${
+              errors.name ? "border-red-500" : ""
+            }`}
             placeholder="Nhập tên hiển thị"
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
 
         {/* Password */}
@@ -181,7 +182,9 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={(e) => handleInputChange("password", e.target.value)}
-              className={`border p-2 rounded-md w-full pr-10 ${errors.password ? "border-red-500" : ""}`}
+              className={`border p-2 rounded-md w-full pr-10 ${
+                errors.password ? "border-red-500" : ""
+              }`}
               placeholder="Nhập mật khẩu"
             />
             <button
@@ -192,7 +195,9 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
         </div>
 
         {/* Confirm Password */}
@@ -203,8 +208,12 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
               id="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               value={formData.confirmPassword}
-              onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-              className={`border p-2 rounded-md w-full pr-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
+              onChange={(e) =>
+                handleInputChange("confirmPassword", e.target.value)
+              }
+              className={`border p-2 rounded-md w-full pr-10 ${
+                errors.confirmPassword ? "border-red-500" : ""
+              }`}
               placeholder="Nhập lại mật khẩu"
             />
             <button
@@ -215,7 +224,11 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
               {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.confirmPassword}
+            </p>
+          )}
         </div>
 
         {/* Referral Code */}
@@ -237,9 +250,9 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
             id="terms"
             checked={acceptTerms}
             onCheckedChange={(checked) => {
-              setAcceptTerms(checked as boolean)
+              setAcceptTerms(checked as boolean);
               if (errors.terms) {
-                setErrors((prev) => ({ ...prev, terms: "" }))
+                setErrors((prev) => ({ ...prev, terms: "" }));
               }
             }}
             className={errors.terms ? "border-red-500" : ""}
@@ -255,7 +268,9 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
                 Chính sách bảo mật
               </a>
             </label>
-            {errors.terms && <p className="text-red-500 mt-1">{errors.terms}</p>}
+            {errors.terms && (
+              <p className="text-red-500 mt-1">{errors.terms}</p>
+            )}
           </div>
         </div>
 
@@ -270,7 +285,9 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
 
         {/* OAuth Buttons */}
         <div className="space-y-2">
-          <div className="text-center text-gray-500 text-sm">hoặc đăng ký bằng</div>
+          <div className="text-center text-gray-500 text-sm">
+            hoặc đăng ký bằng
+          </div>
 
           <Button
             type="button"
@@ -298,11 +315,15 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
         {/* Switch to Login */}
         <div className="text-center">
           <span className="text-gray-600 text-sm">Đã có tài khoản? </span>
-          <button type="button" onClick={onSwitchToLogin} className="text-blue-600 hover:underline text-sm font-medium">
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="text-blue-600 hover:underline text-sm font-medium"
+          >
             Đăng nhập ngay
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

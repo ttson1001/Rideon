@@ -1,183 +1,168 @@
+import { FC, useState, useEffect, useRef } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { ArrowLeft, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { ChatHeader } from "@/components/chat/chat-header";
+import { ChatMessageBubble } from "@/components/chat/chat-message-bubble";
+import { TimeGroupLabel } from "@/components/chat/time-group-label";
+import { MessageInput } from "@/components/chat/message-input";
+import { isSameDay } from "date-fns";
+import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
+import axios from "axios";
+import { getUserById } from "@/components/api/dashboardService";
 
+const BASE_URL = "http://14.225.217.181:8080";
 
-import { FC, useState, useEffect, useRef } from "react"
-import { useNavigate, useParams, Link } from "react-router-dom"
-import { ArrowLeft, Info } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ChatHeader } from "@/components/chat/chat-header"
-import { ChatMessageBubble } from "@/components/chat/chat-message-bubble"
-import { TypingIndicator } from "@/components/chat/typing-indicator"
-import { TimeGroupLabel } from "@/components/chat/time-group-label"
-import { MessageInput } from "@/components/chat/message-input"
-import { format, isSameDay } from "date-fns"
-
-type ChatMessage = {
-  id: string
-  senderId: string
-  text: string
-  timestamp: string
-  isOwner: boolean
-  senderName: string
-  senderAvatar?: string
-}
-
-type RentalInfo = {
-  id: string
-  vehicleName: string
-  startDate: string
-  endDate: string
-  status: "pending" | "approved" | "active" | "completed"
-  totalAmount: number
-}
-
-// Mock data
-const mockRentalInfo: RentalInfo = {
-  id: "1",
-  vehicleName: "Honda Air Blade 150",
-  startDate: "2024-01-20",
-  endDate: "2024-01-22",
-  status: "approved",
-  totalAmount: 350000,
-}
-
-const mockMessages: ChatMessage[] = [
-  {
-    id: "1",
-    senderId: "owner1",
-    text: "Chào bạn! Cảm ơn bạn đã quan tâm đến xe của tôi.",
-    timestamp: "2024-01-15T09:00:00Z",
-    isOwner: true,
-    senderName: "Nguyễn Văn A",
-    senderAvatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "2",
-    senderId: "renter1",
-    text: "Chào anh! Em muốn hỏi xe có sẵn vào ngày 20/1 không ạ?",
-    timestamp: "2024-01-15T09:05:00Z",
-    isOwner: false,
-    senderName: "Trần Thị B",
-    senderAvatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "3",
-    senderId: "owner1",
-    text: "Có bạn ạ. Xe đang rảnh vào thời gian đó. Bạn cần thuê bao nhiêu ngày?",
-    timestamp: "2024-01-15T09:07:00Z",
-    isOwner: true,
-    senderName: "Nguyễn Văn A",
-    senderAvatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "4",
-    senderId: "renter1",
-    text: "Em cần thuê 2 ngày từ 20-22/1 ạ. Xe có đầy xăng không anh?",
-    timestamp: "2024-01-15T09:10:00Z",
-    isOwner: false,
-    senderName: "Trần Thị B",
-    senderAvatar: "/placeholder.svg?height=32&width=32",
-  },
-  {
-    id: "5",
-    senderId: "owner1",
-    text: "Có bạn ạ. Anh sẽ giao xe đầy xăng và sạch sẽ. Địa điểm giao xe ở đâu bạn?",
-    timestamp: "2024-01-15T09:15:00Z",
-    isOwner: true,
-    senderName: "Nguyễn Văn A",
-    senderAvatar: "/placeholder.svg?height=32&width=32",
-  },
-]
-
-const mockCurrentUser = {
-  id: "renter1",
-  name: "Trần Thị B",
-  avatar: "/placeholder.svg?height=32&width=32",
-  role: "renter" as "renter" | "owner",
-}
-
-const mockOtherUser = {
-  id: "owner1",
-  name: "Nguyễn Văn A",
-  avatar: "/placeholder.svg?height=32&width=32",
-  role: "owner" as const,
-  isOnline: true,
+interface ChatMessage {
+  senderId: number;
+  receiverId: number;
+  text: string;
+  timestamp: string;
 }
 
 const ChatDetail: FC = () => {
-  const navigate = useNavigate()
-  const { requestId } = useParams()
-  const [messages, setMessages] = useState<ChatMessage[]>(mockMessages)
-  const [isTyping, setIsTyping] = useState(false)
-  const [otherUserTyping, setOtherUserTyping] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { bookingId, senderId, receiverId } = useParams();
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [connection, setConnection] = useState<HubConnection | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  const currentUserId = Number(senderId);
+  const otherUserId = Number(receiverId);
+
+  const currentUser = {
+    id: currentUserId,
+    name: `User ${currentUserId}`,
+    avatar: "/placeholder.svg",
+    role: "renter" as "renter" | "owner",
+  };
+
+  const [otherUser, setOtherUser] = useState<{
+    id: number;
+    name: string;
+    avatar: string;
+    role: string;
+    isOnline: boolean;
+  }>({
+    id: 0,
+    name: "Người dùng",
+    avatar: "/placeholder.svg",
+    role: "renter", // hoặc "owner" tùy vai trò mặc định
+    isOnline: false,
+  });
+  useEffect(() => {
+    if (!otherUserId) return;
+
+    const loadUser = async () => {
+      try {
+        const user = await getUserById(otherUserId);
+        setOtherUser({
+          id: user.id,
+          name: user.name,
+          avatar: user.avatarUrl || "/placeholder.svg",
+          role: user.role,
+          isOnline: true, // Nếu có trạng thái thật thì dùng thay thế
+        });
+      } catch (error) {
+        console.error("Failed to load other user", error);
+      }
+    };
+
+    loadUser();
+  }, [otherUserId]);
+
+  const scrollToBottom = () =>
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages, otherUserTyping])
+    axios
+      .get(`${BASE_URL}/api/messages/between/${currentUserId}/${otherUserId}`)
+      .then((res) => setMessages(res.data))
+      .catch(console.error);
+  }, [senderId, receiverId]);
 
-  const handleSendMessage = (text: string) => {
-    const newMessage: ChatMessage = {
-      id: Date.now().toString(),
-      senderId: mockCurrentUser.id,
-      text,
-      timestamp: new Date().toISOString(),
-      isOwner: mockCurrentUser.role === "owner",
-      senderName: mockCurrentUser.name,
-      senderAvatar: mockCurrentUser.avatar,
+  useEffect(() => {
+    const connect = new HubConnectionBuilder()
+      .withUrl(
+        `${BASE_URL}/chathub?senderId=${currentUserId}&receiverId=${otherUserId}`
+      )
+      .withAutomaticReconnect()
+      .build();
+
+    connect.on("ReceiveMessage", (message: ChatMessage) => {
+      setMessages((prev) => [...prev, message]);
+    });
+
+    connect
+      .start()
+      .then(() => setConnection(connect))
+      .catch(console.error);
+
+    return () => {
+      connect.stop();
+    };
+  }, [bookingId]);
+
+  const handleSendMessage = async (text: string) => {
+    if (!connection) return;
+
+    const message = {
+      senderId: currentUser.id,
+      receiverId: otherUser.id,
+      text: text,
+    };
+
+    try {
+      await connection.invoke(
+        "SendMessage",
+        message.senderId,
+        message.receiverId,
+        message.text
+      );
+
+      await axios.post(`${BASE_URL}/api/messages`, message);
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
-
-    setMessages((prev) => [...prev, newMessage])
-
-    // Simulate other user response (for demo)
-    setTimeout(() => {
-      setOtherUserTyping(true)
-      setTimeout(() => {
-        setOtherUserTyping(false)
-        const responseMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          senderId: mockOtherUser.id,
-          text: "Cảm ơn bạn! Tôi sẽ phản hồi sớm nhất có thể.",
-          timestamp: new Date().toISOString(),
-          isOwner: mockOtherUser.role === "owner",
-          senderName: mockOtherUser.name,
-          senderAvatar: mockOtherUser.avatar,
-        }
-        setMessages((prev) => [...prev, responseMessage])
-      }, 2000)
-    }, 1000)
-  }
-
-  const handleTyping = (typing: boolean) => {
-    setIsTyping(typing)
-  }
+  };
 
   const groupMessagesByDate = (messages: ChatMessage[]) => {
-    const groups: { date: Date; messages: ChatMessage[] }[] = []
+    const groups: { date: Date; messages: ChatMessage[] }[] = [];
+    messages.forEach((m) => {
+      const d = new Date(m.timestamp);
+      const group = groups.find((g) => isSameDay(g.date, d));
+      if (group) group.messages.push(m);
+      else groups.push({ date: d, messages: [m] });
+    });
+    return groups;
+  };
 
-    messages.forEach((message) => {
-      const messageDate = new Date(message.timestamp)
-      const existingGroup = groups.find((group) => isSameDay(group.date, messageDate))
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-      if (existingGroup) {
-        existingGroup.messages.push(message)
-      } else {
-        groups.push({ date: messageDate, messages: [message] })
-      }
-    })
+  const [booking, setBooking] = useState<{
+    vehicleName: string;
+    totalAmount: number;
+  }>({ vehicleName: "", totalAmount: 0 });
 
-    return groups
-  }
-
-  const messageGroups = groupMessagesByDate(messages)
+  useEffect(() => {
+    if (!Number(bookingId)) return;
+    axios
+      .get(`${BASE_URL}/api/bookings/${bookingId}`)
+      .then((res) => {
+        const data = res.data;
+        setBooking({
+          vehicleName: data.vehicleName,
+          totalAmount: data.totalAmount,
+        });
+      })
+      .catch(console.error);
+  }, [bookingId]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* Mobile back button */}
       <div className="md:hidden flex items-center gap-3 p-4 bg-white border-b">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
@@ -186,95 +171,97 @@ const ChatDetail: FC = () => {
       </div>
 
       <div className="flex-1 flex max-w-7xl mx-auto w-full">
-        {/* Sidebar - Rental Info (Desktop) */}
-        <div className="hidden lg:block w-80 bg-white border-r">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold text-gray-900">Thông tin chuyến thuê</h2>
-          </div>
-
-          <div className="p-4">
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-medium text-gray-900">{mockRentalInfo.vehicleName}</h3>
-                  <p className="text-sm text-gray-600">Mã đơn: #{mockRentalInfo.id}</p>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Ngày thuê:</span>
-                    <span>{format(new Date(mockRentalInfo.startDate), "dd/MM/yyyy")}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Ngày trả:</span>
-                    <span>{format(new Date(mockRentalInfo.endDate), "dd/MM/yyyy")}</span>
+        {Number(bookingId) ? (
+          <div className="hidden lg:block w-80 bg-white border-r">
+            <div className="p-4 border-b">
+              <h2 className="font-semibold text-gray-900">
+                Thông tin chuyến thuê
+              </h2>
+            </div>
+            <div className="p-4">
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <div>
+                    <h3 className="font-medium text-gray-900">
+                      {booking.vehicleName || "Đang tải..."}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Mã đơn: #{bookingId}
+                    </p>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tổng tiền:</span>
-                    <span className="font-medium text-blue-600">{mockRentalInfo.totalAmount.toLocaleString()}đ</span>
+                    <span className="text-blue-600 font-semibold">
+                      {booking.totalAmount.toLocaleString()}đ
+                    </span>
                   </div>
-                </div>
-
-                <Button variant="outline" size="sm" className="w-full" asChild>
-                  <Link to={`/rental/${mockRentalInfo.id}`}>
-                    <Info className="h-4 w-4 mr-2" />
-                    Xem chi tiết
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    asChild
+                  >
+                    <Link to={`/rental/${bookingId}`}>
+                      <Info className="h-4 w-4 mr-2" /> Xem chi tiết
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        ) : (
+          <></>
+        )}
 
-        {/* Chat Area */}
         <div className="flex-1 flex flex-col bg-white">
-          {/* Chat Header */}
           <ChatHeader
-            userName={mockOtherUser.name}
-            userAvatar={mockOtherUser.avatar}
-            isOnline={mockOtherUser.isOnline}
-            userRole={mockOtherUser.role}
+            userName={otherUser.name}
+            userAvatar={otherUser.avatar}
+            isOnline={otherUser.isOnline}
+            userRole={otherUser.role as "renter" | "owner"}
             onBack={() => navigate(-1)}
           />
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1">
-            {messageGroups.map((group, groupIndex) => (
-              <div key={groupIndex}>
+          <div className="overflow-y-auto p-4 space-y-1 min-h-[300px] max-h-[calc(100vh-220px)]">
+            {groupMessagesByDate(messages).map((group, index) => (
+              <div key={index}>
                 <TimeGroupLabel date={group.date} />
-                {group.messages.map((message, index) => {
-                  const isCurrentUser = message.senderId === mockCurrentUser.id
-                  const showAvatar =
-                    index === group.messages.length - 1 || group.messages[index + 1]?.senderId !== message.senderId
-
-                  return (
-                    <ChatMessageBubble
-                      key={message.id}
-                      message={message}
-                      isCurrentUser={isCurrentUser}
-                      showAvatar={showAvatar}
-                    />
-                  )
-                })}
+                {group.messages.map((msg, i) => (
+                  <ChatMessageBubble
+                    key={i}
+                    message={{
+                      id: `${index}-${i}`,
+                      senderId: msg.senderId.toString(),
+                      text: msg.text,
+                      timestamp: msg.timestamp,
+                      isOwner: msg.senderId === otherUser.id,
+                      senderName:
+                        msg.senderId === currentUser.id
+                          ? currentUser.name
+                          : otherUser.name,
+                      senderAvatar:
+                        msg.senderId === currentUser.id
+                          ? currentUser.avatar
+                          : otherUser.avatar,
+                    }}
+                    isCurrentUser={msg.senderId === currentUser.id}
+                    showAvatar={true}
+                  />
+                ))}
               </div>
             ))}
-
-            {/* Typing Indicator */}
-            {otherUserTyping && <TypingIndicator userName={mockOtherUser.name} userAvatar={mockOtherUser.avatar} />}
-
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Message Input */}
           <MessageInput
             onSendMessage={handleSendMessage}
-            onTyping={handleTyping}
-            placeholder={`Nhắn tin cho ${mockOtherUser.name}...`}
+            onTyping={() => {}}
+            placeholder={`Nhắn tin cho ${otherUser.name}...`}
           />
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ChatDetail
+export default ChatDetail;

@@ -1,15 +1,26 @@
-import { useApp } from "@/contexts/app-context"
-import { LayoutDashboard, Car, Users, CreditCard, AlertTriangle, LogOut, Bell, MessageSquare } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useApp } from "@/contexts/app-context";
+import {
+  LayoutDashboard,
+  Car,
+  Users,
+  CreditCard,
+  LogOut,
+  MessageSquare,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router";
 
 interface AdminSidebarProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
-export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
-  const { t } = useApp()
+export default function AdminSidebar({
+  activeTab,
+  onTabChange,
+}: AdminSidebarProps) {
+  const { t } = useApp();
 
   // Mock notification counts
   const notificationCounts = {
@@ -17,19 +28,13 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
     chat: 5,
     violations: 3,
     pendingVehicles: 8,
-  }
-
+  };
+  const navigate = useNavigate();
   const menuItems = [
     {
       id: "dashboard",
       label: t("admin.sidebar.dashboard"),
       icon: LayoutDashboard,
-    },
-    {
-      id: "notifications",
-      label: t("admin.sidebar.notifications"),
-      icon: Bell,
-      badge: notificationCounts.notifications,
     },
     {
       id: "chat",
@@ -53,13 +58,13 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
       label: t("admin.sidebar.transactions"),
       icon: CreditCard,
     },
-    {
-      id: "violations",
-      label: t("admin.sidebar.violations"),
-      icon: AlertTriangle,
-      badge: notificationCounts.violations,
-    },
-  ]
+    // {
+    //   id: "violations",
+    //   label: t("admin.sidebar.violations"),
+    //   icon: AlertTriangle,
+    //   badge: notificationCounts.violations,
+    // },
+  ];
 
   return (
     <div className="w-1/5 bg-gray-800 text-white min-h-screen flex flex-col">
@@ -72,7 +77,7 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
       {/* Navigation Menu */}
       <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => {
-          const Icon = item.icon
+          const Icon = item.icon;
           return (
             <button
               key={item.id}
@@ -93,7 +98,7 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
                 </Badge>
               )}
             </button>
-          )
+          );
         })}
       </nav>
 
@@ -103,8 +108,9 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
           variant="ghost"
           className="w-full justify-start text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
           onClick={() => {
-            // Handle logout logic here
-            console.log("Logging out...")
+            localStorage.clear();
+            sessionStorage.clear();
+            navigate("/");
           }}
         >
           <LogOut size={20} className="mr-3" />
@@ -112,5 +118,5 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
         </Button>
       </div>
     </div>
-  )
+  );
 }

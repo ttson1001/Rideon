@@ -1,117 +1,120 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Eye, EyeOff, Facebook, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/contexts/auth-context"
-import { toast } from "react-hot-toast"
-import { useNavigate } from "react-router-dom"
-
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, Facebook, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/auth-context";
+import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { login } from "../api/authService";
 interface LoginFormProps {
-  onOAuthLogin: (provider: "facebook" | "google") => void
-  onForgotPassword: () => void
-  onSwitchToSignup: () => void
+  onOAuthLogin: (provider: "facebook" | "google") => void;
+  onSwitchToSignup: () => void;
 }
 
-export function LoginForm({ onOAuthLogin, onForgotPassword, onSwitchToSignup }: LoginFormProps) {
-  const { signInWithGoogle, signInWithEmailAndPassword, user, loading } = useAuth()
-  const navigate = useNavigate()
+export function LoginForm({ onOAuthLogin, onSwitchToSignup }: LoginFormProps) {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (user && !loading) {
       // Redirect to dashboard or home page
-      navigate('/dashboard/owner');
+      setIsGoogleLoading(false);
+      navigate("/dashboard/owner");
     }
   }, [user, loading, navigate]);
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
-      newErrors.email = "Email là bắt buộc"
+      newErrors.email = "Email là bắt buộc";
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Email không đúng định dạng"
+      newErrors.email = "Email không đúng định dạng";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Mật khẩu là bắt buộc"
+      newErrors.password = "Mật khẩu là bắt buộc";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự"
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (validateForm()) {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        await signInWithEmailAndPassword(formData.email, formData.password)
-        toast.success('Đăng nhập thành công!')
-      } catch (error: any) {
-        console.error('Error signing in:', error)
-        let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.'
-        
-        // Xử lý các mã lỗi cụ thể
-        switch (error.code) {
-          case 'auth/user-not-found':
-            errorMessage = 'Không tìm thấy tài khoản với email này.'
-            break
-          case 'auth/wrong-password':
-            errorMessage = 'Mật khẩu không đúng.'
-            break
-          case 'auth/invalid-email':
-            errorMessage = 'Email không hợp lệ.'
-            break
-          case 'auth/user-disabled':
-            errorMessage = 'Tài khoản đã bị vô hiệu hóa.'
-            break
+        const result = await login(formData);
+        if (result.success && result.data) {
+          const { userId, role } = result.data;
+
+          localStorage.setItem("userId", userId);
+          localStorage.setItem("role", role);
+
+          toast.success("Đăng nhập thành công!");
+
+          // Chuyển hướng theo role và reload toàn bộ trang
+          switch (role) {
+            case "owner":
+              window.location.href = "/dashboard/owner";
+              break;
+            case "renter":
+              window.location.href = "/dashboard/renter";
+              break;
+            case "admin":
+              window.location.href = "/admin";
+              break;
+            default:
+              window.location.href = "/";
+          }
+        } else {
+          throw new Error(result.message);
         }
-        
-        toast.error(errorMessage)
-        setErrors(prev => ({
-          ...prev,
-          form: errorMessage
-        }))
+      } catch (error: any) {
+        console.error("Lỗi khi đăng nhập:", error);
+        toast.error("Đăng nhập thất bại");
+        setErrors((prev) => ({ ...prev, form: error.message }));
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
-  const handleGoogleLogin = async () => {
-    setIsGoogleLoading(true)
-    try {
-      await signInWithGoogle()
-    } catch (error: any) {
-      console.error('Error signing in with Google:', error)
-      // Error is already handled in auth context
-    } finally {
-      setIsGoogleLoading(false)
-    }
-  }
+  // const handleGoogleLogin = async () => {
+  //   setIsGoogleLoading(true);
+  //   try {
+  //     await signInWithGoogle();
+  //   } catch (error: any) {
+  //     console.error("Error signing in with Google:", error);
+  //     // Error is already handled in auth context
+  //   } finally {
+  //     setIsGoogleLoading(false);
+  //   }
+  // };
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mx-auto">
@@ -129,11 +132,15 @@ export function LoginForm({ onOAuthLogin, onForgotPassword, onSwitchToSignup }: 
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
-            className={`border p-2 rounded-md w-full ${errors.email ? "border-red-500" : ""}`}
+            className={`border p-2 rounded-md w-full ${
+              errors.email ? "border-red-500" : ""
+            }`}
             placeholder="Nhập địa chỉ email"
             disabled={isLoading || isGoogleLoading}
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* Password */}
@@ -145,7 +152,9 @@ export function LoginForm({ onOAuthLogin, onForgotPassword, onSwitchToSignup }: 
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={(e) => handleInputChange("password", e.target.value)}
-              className={`border p-2 rounded-md w-full pr-10 ${errors.password ? "border-red-500" : ""}`}
+              className={`border p-2 rounded-md w-full pr-10 ${
+                errors.password ? "border-red-500" : ""
+              }`}
               placeholder="Nhập mật khẩu"
               disabled={isLoading || isGoogleLoading}
             />
@@ -158,14 +167,15 @@ export function LoginForm({ onOAuthLogin, onForgotPassword, onSwitchToSignup }: 
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
         </div>
 
         {/* Forgot Password */}
         <div className="text-right">
           <button
             type="button"
-            onClick={onForgotPassword}
             className="text-blue-600 hover:underline text-sm"
             disabled={isLoading || isGoogleLoading}
           >
@@ -184,12 +194,13 @@ export function LoginForm({ onOAuthLogin, onForgotPassword, onSwitchToSignup }: 
 
         {/* OAuth Buttons */}
         <div className="space-y-2">
-          <div className="text-center text-gray-500 text-sm">hoặc đăng nhập bằng</div>
+          <div className="text-center text-gray-500 text-sm">
+            hoặc đăng nhập bằng
+          </div>
 
           <Button
             type="button"
             variant="outline"
-            onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-2 border border-gray-300 hover:bg-gray-50"
             disabled={isLoading || isGoogleLoading}
           >
@@ -223,5 +234,5 @@ export function LoginForm({ onOAuthLogin, onForgotPassword, onSwitchToSignup }: 
         </div>
       </form>
     </div>
-  )
+  );
 }

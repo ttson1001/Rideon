@@ -1,8 +1,13 @@
-
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TrendingUp, TrendingDown, DollarSign } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 
 // Mock data for revenue chart
 const mockRevenueData = {
@@ -34,25 +39,30 @@ const mockRevenueData = {
     { month: "Nov", revenue: 1400000, bookings: 9 },
     { month: "Dec", revenue: 1800000, bookings: 12 },
   ],
-}
+};
 
 export function RevenueChart() {
-  const [selectedYear, setSelectedYear] = useState("2024")
-  const data = mockRevenueData[selectedYear as keyof typeof mockRevenueData]
+  const [selectedYear, setSelectedYear] = useState("2024");
+  const data = mockRevenueData[selectedYear as keyof typeof mockRevenueData];
 
-  const maxRevenue = Math.max(...data.map((d) => d.revenue))
-  const totalRevenue = data.reduce((sum, d) => sum + d.revenue, 0)
-  const avgRevenue = totalRevenue / data.length
+  const maxRevenue = Math.max(...data.map((d) => d.revenue));
+  const totalRevenue = data.reduce((sum, d) => sum + d.revenue, 0);
+  const avgRevenue = totalRevenue / data.length;
 
   // Calculate growth compared to previous month
-  const currentMonth = data[data.length - 1]
-  const previousMonth = data[data.length - 2]
-  const growth = previousMonth ? ((currentMonth.revenue - previousMonth.revenue) / previousMonth.revenue) * 100 : 0
+  const currentMonth = data[data.length - 1];
+  const previousMonth = data[data.length - 2];
+  const growth = previousMonth
+    ? ((currentMonth.revenue - previousMonth.revenue) / previousMonth.revenue) *
+      100
+    : 0;
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-base font-medium">Doanh thu theo tháng</CardTitle>
+        <CardTitle className="text-base font-medium">
+          Doanh thu theo tháng
+        </CardTitle>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="w-20">
             <SelectValue />
@@ -67,11 +77,15 @@ export function RevenueChart() {
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{(totalRevenue / 1000000).toFixed(1)}M</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {(totalRevenue / 1000000).toFixed(1)}M
+            </div>
             <div className="text-xs text-gray-500">Tổng doanh thu</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{(avgRevenue / 1000000).toFixed(1)}M</div>
+            <div className="text-2xl font-bold text-green-600">
+              {(avgRevenue / 1000000).toFixed(1)}M
+            </div>
             <div className="text-xs text-gray-500">Trung bình/tháng</div>
           </div>
           <div className="text-center">
@@ -80,7 +94,11 @@ export function RevenueChart() {
                 growth >= 0 ? "text-green-600" : "text-red-600"
               }`}
             >
-              {growth >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+              {growth >= 0 ? (
+                <TrendingUp className="h-4 w-4" />
+              ) : (
+                <TrendingDown className="h-4 w-4" />
+              )}
               {Math.abs(growth).toFixed(1)}%
             </div>
             <div className="text-xs text-gray-500">So với tháng trước</div>
@@ -89,20 +107,26 @@ export function RevenueChart() {
 
         {/* Chart */}
         <div className="space-y-3">
-          {data.map((item, index) => (
+          {data.map((item) => (
             <div key={item.month} className="flex items-center gap-3">
-              <div className="w-8 text-xs font-medium text-gray-600">{item.month}</div>
+              <div className="w-8 text-xs font-medium text-gray-600">
+                {item.month}
+              </div>
               <div className="flex-1 relative">
                 <div className="h-8 bg-gray-100 rounded-md overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-md transition-all duration-500 ease-out flex items-center justify-end pr-2"
                     style={{ width: `${(item.revenue / maxRevenue) * 100}%` }}
                   >
-                    <span className="text-white text-xs font-medium">{(item.revenue / 1000000).toFixed(1)}M</span>
+                    <span className="text-white text-xs font-medium">
+                      {(item.revenue / 1000000).toFixed(1)}M
+                    </span>
                   </div>
                 </div>
               </div>
-              <div className="w-16 text-xs text-gray-500 text-right">{item.bookings} chuyến</div>
+              <div className="w-16 text-xs text-gray-500 text-right">
+                {item.bookings} chuyến
+              </div>
             </div>
           ))}
         </div>
@@ -120,5 +144,5 @@ export function RevenueChart() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
