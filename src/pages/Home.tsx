@@ -77,7 +77,7 @@ const Home: FC = () => {
 
             <div className="relative">
               <img
-                src="http://rideonvn.online:8080/uploads/ff63d7d1-edad-4db1-a7e6-9ecdd7c36ef0.png"
+                src="http://somith.site:8080/uploads/6a84e92e-d856-450f-86e5-778166d57260.png"
                 alt="Motorbike rental hero image"
                 className="rounded-2xl shadow-2xl w-full h-auto"
               />

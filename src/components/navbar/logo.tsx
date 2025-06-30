@@ -4,7 +4,7 @@ export function Logo() {
   return (
     <Link to="/" className="flex items-center gap-2">
       <img
-        src="http://rideonvn.online:8080/uploads/a6607f52-2446-416e-93ed-aa62c6efe1e3.png"
+        src="http://somith.site:8080/uploads/ff8fa35a-a07a-4c02-8251-3e014929a4b8.png"
         alt="RideOn Logo"
         className="h-8 w-auto"
       />

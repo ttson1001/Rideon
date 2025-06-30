@@ -135,7 +135,7 @@ const OwnerInfo: FC = () => {
 
             <div className="relative">
               <img
-                src="http://rideonvn.online:8080/uploads/f864abb1-c537-4a1b-ac72-c1684de51500.png"
+                src="http://somith.site:8080/uploads/24d19934-c8fb-48ec-a142-c0899682ad8e.png"
                 alt="Become owner hero image"
                 className="rounded-full shadow-2xl w-full h-auto"
               />
