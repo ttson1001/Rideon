@@ -42,15 +42,22 @@ const Home: FC = () => {
               <div className="space-y-4">
                 <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                   Thuê xe máy dễ dàng
-                  <span className="block text-yellow-400">Trải nghiệm địa phương như người bản xứ</span>
+                  <span className="block text-yellow-400">
+                    Trải nghiệm địa phương như người bản xứ
+                  </span>
                 </h1>
                 <p className="text-xl text-white max-w-lg">
-                  Nền tảng thuê xe máy hàng đầu Việt Nam. Hàng nghìn lựa chọn xe chất lượng cao với giá cả hợp lý.
+                  Nền tảng thuê xe máy hàng đầu Việt Nam. Hàng nghìn lựa chọn xe
+                  chất lượng cao với giá cả hợp lý.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold" asChild>
+                <Button
+                  size="lg"
+                  className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold"
+                  asChild
+                >
                   <Link to="/browse">
                     Tìm xe gần bạn
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -70,7 +77,7 @@ const Home: FC = () => {
 
             <div className="relative">
               <img
-                src="/src/assets/RideonBanner.png"
+                src="http://rideonvn.online:8080/uploads/ff63d7d1-edad-4db1-a7e6-9ecdd7c36ef0.png"
                 alt="Motorbike rental hero image"
                 className="rounded-2xl shadow-2xl w-full h-auto"
               />
@@ -83,7 +90,9 @@ const Home: FC = () => {
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Tìm xe phù hợp với bạn</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Tìm xe phù hợp với bạn
+            </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Nhập thông tin để tìm kiếm xe máy phù hợp với nhu cầu của bạn
             </p>
@@ -108,20 +117,28 @@ const Home: FC = () => {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Tại sao chọn MotoBike?</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Tại sao chọn MotoBike?
+            </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Chúng tôi cam kết mang đến trải nghiệm thuê xe tốt nhất với những ưu điểm vượt trội
+              Chúng tôi cam kết mang đến trải nghiệm thuê xe tốt nhất với những
+              ưu điểm vượt trội
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center p-6 hover:shadow-lg transition-shadow">
+              <Card
+                key={index}
+                className="text-center p-6 hover:shadow-lg transition-shadow"
+              >
                 <CardContent className="space-y-4">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
                     <feature.icon className="h-8 w-8 text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {feature.title}
+                  </h3>
                   <p className="text-gray-600">{feature.description}</p>
                 </CardContent>
               </Card>
@@ -133,12 +150,19 @@ const Home: FC = () => {
       {/* CTA Section */}
       <section className="py-20 bg-[#00a8ff] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Sẵn sàng bắt đầu hành trình?</h2>
+          <h2 className="text-3xl font-bold mb-4">
+            Sẵn sàng bắt đầu hành trình?
+          </h2>
           <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
-            Tham gia cộng đồng MotoBike ngay hôm nay và khám phá những trải nghiệm tuyệt vời
+            Tham gia cộng đồng MotoBike ngay hôm nay và khám phá những trải
+            nghiệm tuyệt vời
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold" asChild>
+            <Button
+              size="lg"
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold"
+              asChild
+            >
               <Link to="/signup">
                 Đăng ký ngay
                 <ArrowRight className="ml-2 h-5 w-5" />
