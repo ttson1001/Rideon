@@ -1,50 +1,50 @@
-import { useApp } from "../../contexts/app-context"
-import AdminCard from "./admin-card"
-import { Car, Users, CreditCard, AlertTriangle } from "lucide-react"
+import { useApp } from "../../contexts/app-context";
+import AdminCard from "./admin-card";
+import { Car, Users, CreditCard, AlertTriangle } from "lucide-react";
 
-type StatColor = "blue" | "green" | "purple" | "red"
+type StatColor = "blue" | "green" | "purple" | "red";
 
 interface Stat {
-  title: string
-  value: string
-  change: string
-  icon: typeof Car
-  color: StatColor
+  title: string;
+  value: string;
+  change: string;
+  icon: typeof Car;
+  color: StatColor;
 }
 
 export default function AdminDashboard() {
-  const { t } = useApp()
+  const { t } = useApp();
 
   const stats: Stat[] = [
     {
       title: t("stats.totalVehicles"),
-      value: "1,234",
+      value: "20",
       change: "+12%",
       icon: Car,
       color: "blue",
     },
     {
       title: t("stats.totalUsers"),
-      value: "5,678",
+      value: "50",
       change: "+8%",
       icon: Users,
       color: "green",
     },
     {
       title: t("stats.monthlyRevenue"),
-      value: "₫125M",
+      value: "₫3M",
       change: "+15%",
       icon: CreditCard,
       color: "purple",
     },
     {
       title: t("stats.pendingReports"),
-      value: "23",
+      value: "10",
       change: "-5%",
       icon: AlertTriangle,
       color: "red",
     },
-  ]
+  ];
 
   return (
     <div className="p-6">
@@ -72,7 +72,9 @@ export default function AdminDashboard() {
               <span className="text-xs text-gray-500">5 phút trước</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm">Giao dịch ₫500,000 được hoàn thành</span>
+              <span className="text-sm">
+                Giao dịch ₫500,000 được hoàn thành
+              </span>
               <span className="text-xs text-gray-500">10 phút trước</span>
             </div>
           </div>
@@ -83,15 +85,15 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Xe chờ duyệt</span>
-              <span className="font-semibold">15</span>
+              <span className="font-semibold">2</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Giao dịch hôm nay</span>
-              <span className="font-semibold">89</span>
+              <span className="font-semibold">12</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Người dùng online</span>
-              <span className="font-semibold">234</span>
+              <span className="font-semibold">10</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-gray-600">Báo cáo mới</span>
@@ -101,5 +103,5 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

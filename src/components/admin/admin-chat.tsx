@@ -244,7 +244,7 @@ export default function AdminChat() {
                           isOwner: msg.senderId !== currentUserId,
                           senderName:
                             msg.senderId === currentUserId
-                              ? "Admin"
+                              ? "admin"
                               : selectedConversation.userName,
                           senderAvatar:
                             msg.senderId === currentUserId
