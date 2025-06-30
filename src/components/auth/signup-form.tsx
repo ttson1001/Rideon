@@ -22,7 +22,8 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
     name: "",
     password: "",
     confirmPassword: "",
-    referralCode: "",
+    role: "renter",
+    address: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -31,7 +32,6 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Redirect khi đăng ký thành công
   useEffect(() => {
     if (user && !loading) {
       navigate("/dashboard/owner");
@@ -47,9 +47,9 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
           email: formData.email,
           name: formData.name,
           password: formData.password,
-          role: "renter",
+          role: formData.role,
+          address: formData.address,
         });
-
         if (response.success) {
           toast.success("Đăng ký thành công!");
           onSwitchToLogin();
@@ -82,6 +82,10 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    if (!formData.address.trim()) {
+      newErrors.address = "Địa chỉ là bắt buộc";
+    }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -172,6 +176,23 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
             <p className="text-red-500 text-sm mt-1">{errors.name}</p>
           )}
         </div>
+        {/* Address */}
+        <div>
+          <Label htmlFor="address">Địa chỉ *</Label>
+          <Input
+            id="address"
+            type="text"
+            value={formData.address}
+            onChange={(e) => handleInputChange("address", e.target.value)}
+            className={`border p-2 rounded-md w-full ${
+              errors.address ? "border-red-500" : ""
+            }`}
+            placeholder="Nhập địa chỉ của bạn"
+          />
+          {errors.address && (
+            <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+          )}
+        </div>
 
         {/* Password */}
         <div>
@@ -231,17 +252,31 @@ export function SignupForm({ onOAuthLogin, onSwitchToLogin }: SignupFormProps) {
           )}
         </div>
 
-        {/* Referral Code */}
+        {/* Role Selection */}
         <div>
-          <Label htmlFor="referralCode">Mã giới thiệu (tùy chọn)</Label>
-          <Input
-            id="referralCode"
-            type="text"
-            value={formData.referralCode}
-            onChange={(e) => handleInputChange("referralCode", e.target.value)}
-            className="border p-2 rounded-md w-full"
-            placeholder="Nhập mã giới thiệu nếu có"
-          />
+          <Label>Vai trò *</Label>
+          <div className="flex gap-4 mt-1">
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name="role"
+                value="renter"
+                checked={formData.role === "renter"}
+                onChange={() => handleInputChange("role", "renter")}
+              />
+              <span>Người thuê xe</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="radio"
+                name="role"
+                value="owner"
+                checked={formData.role === "owner"}
+                onChange={() => handleInputChange("role", "owner")}
+              />
+              <span>Chủ xe</span>
+            </label>
+          </div>
         </div>
 
         {/* Terms Checkbox */}

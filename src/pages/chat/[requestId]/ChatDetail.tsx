@@ -10,9 +10,7 @@ import { MessageInput } from "@/components/chat/message-input";
 import { isSameDay } from "date-fns";
 import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
 import axios from "axios";
-import { getUserById } from "@/components/api/dashboardService";
-
-const BASE_URL = "http://14.225.217.181:8080";
+import { API_BASE_URL, BASE_URL, getUserById } from "@/components/api/dashboardService";
 
 interface ChatMessage {
   senderId: number;
@@ -77,7 +75,7 @@ const ChatDetail: FC = () => {
 
   useEffect(() => {
     axios
-      .get(`${BASE_URL}/api/messages/between/${currentUserId}/${otherUserId}`)
+      .get(`${API_BASE_URL}/messages/between/${currentUserId}/${otherUserId}`)
       .then((res) => setMessages(res.data))
       .catch(console.error);
   }, [senderId, receiverId]);
@@ -121,7 +119,7 @@ const ChatDetail: FC = () => {
         message.text
       );
 
-      await axios.post(`${BASE_URL}/api/messages`, message);
+      await axios.post(`${API_BASE_URL}/messages`, message);
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -150,7 +148,7 @@ const ChatDetail: FC = () => {
   useEffect(() => {
     if (!Number(bookingId)) return;
     axios
-      .get(`${BASE_URL}/api/bookings/${bookingId}`)
+      .get(`${API_BASE_URL}/bookings/${bookingId}`)
       .then((res) => {
         const data = res.data;
         setBooking({

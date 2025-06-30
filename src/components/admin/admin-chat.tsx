@@ -9,6 +9,7 @@ import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatMessageBubble } from "@/components/chat/chat-message-bubble";
 import { TimeGroupLabel } from "@/components/chat/time-group-label";
 import { MessageInput } from "@/components/chat/message-input";
+import { API_BASE_URL, BASE_URL } from "../api/dashboardService";
 
 interface ChatConversation {
   id: string;
@@ -38,7 +39,7 @@ export default function AdminChat() {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/messages/admin/users`);
+        const res = await axios.get(`${API_BASE_URL}/messages/admin/users`);
         const data = res.data.data;
 
         const mapped: ChatConversation[] = data.map((u: any) => ({
@@ -57,7 +58,6 @@ export default function AdminChat() {
 
     fetchConversations();
   }, []);
-  const BASE_URL = "http://14.225.217.181:8080";
   const [connection, setConnection] = useState<HubConnection | null>(null);
 
   const filteredConversations = conversations.filter((conv) =>
@@ -103,7 +103,7 @@ export default function AdminChat() {
     if (!selectedChat) return;
 
     axios
-      .get(`${BASE_URL}/api/messages/between/${currentUserId}/${selectedChat}`)
+      .get(`${API_BASE_URL}/messages/between/${currentUserId}/${selectedChat}`)
       .then((res) => setMessages(res.data))
       .catch(console.error);
   }, [selectedChat]);
@@ -131,7 +131,7 @@ export default function AdminChat() {
         messageToSend.text
       );
 
-      await axios.post(`${BASE_URL}/api/messages`, messageToSend);
+      await axios.post(`${API_BASE_URL}/messages`, messageToSend);
 
       setConversations((prev) =>
         prev.map((conv) =>

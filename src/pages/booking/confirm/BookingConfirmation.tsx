@@ -12,6 +12,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Separator } from "../../../components/ui/separator";
 import { useToast } from "../../../hooks/use-toast";
 import {
+  API_BASE_URL,
   getCommission,
   getVehicleDetail,
   postBooking,
@@ -82,17 +83,14 @@ const BookingConfirmation: FC = () => {
       if (!bookingId) throw new Error("Không lấy được bookingId");
 
       // 2. Gọi API backend tạo link thanh toán PayOS
-      const paymentRes = await fetch(
-        "http://14.225.217.181:8080/api/Payment/create",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            bookingId,
-            amount: total, // hoặc chỉ cần đặt cọc (total * commissionRate)
-          }),
-        }
-      );
+      const paymentRes = await fetch(API_BASE_URL + "/Payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId,
+          amount: total, // hoặc chỉ cần đặt cọc (total * commissionRate)
+        }),
+      });
 
       if (!paymentRes.ok) throw new Error("Tạo link thanh toán thất bại");
 

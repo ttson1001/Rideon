@@ -4,6 +4,7 @@ import { useApp } from "@/contexts/app-context";
 import { Button } from "@/components/ui/button";
 import StatusBadge from "@/components/admin/status-badge";
 import ReleaseFundsButton from "@/components/admin/release-funds-button";
+import { API_BASE_URL } from "../api/dashboardService";
 
 interface Transaction {
   id: string;
@@ -34,8 +35,6 @@ interface BookingDetailDto {
   };
 }
 
-const BASE_URL = "http://14.225.217.181:8080";
-
 export default function TransactionLogTable() {
   const { t } = useApp();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -44,7 +43,7 @@ export default function TransactionLogTable() {
     const fetchTransactions = async () => {
       try {
         const res = await axios.get(
-          `${BASE_URL}/api/bookings/detail/transactions`
+          `${API_BASE_URL}/bookings/detail/transactions`
         );
         const data: BookingDetailDto[] = res.data.data;
 

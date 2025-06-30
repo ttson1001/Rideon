@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://14.225.217.181:8080/api";
+export const API_BASE_URL = "http://somith.site:8080/api";
+export const BASE_URL = "http://somith.site:8080";
 
 export const getOwnerDashboard = async (ownerId: number) => {
   const response = await axios.get(

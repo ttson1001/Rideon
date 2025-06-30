@@ -21,6 +21,8 @@ export function Navbar({
   const [isScrolled, setIsScrolled] = useState(false);
   const { t, language } = useApp();
   const { logout } = useAuth();
+  const userId = localStorage.getItem("userId");
+  const chat = "/chat/null/" + userId + "/3";
 
   // Handle scroll effect
   useEffect(() => {
@@ -59,6 +61,7 @@ export function Navbar({
               <NavLink href="/browse">{t("nav.browse")}</NavLink>
               <NavLink href="/about">{t("nav.about")}</NavLink>
               <NavLink href="/owner-info">{t("nav.becomeOwner")}</NavLink>
+              <NavLink href={chat}>{"Chat với admin"}</NavLink>
             </div>
           </div>
 

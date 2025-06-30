@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const API_BASE_URL = "http://14.225.217.181:8080/api/Auth";
+import { API_BASE_URL } from "./dashboardService";
 
 export interface UserLoginDto {
   email: string;
@@ -12,6 +11,7 @@ export interface UserRegisterDto {
   email: string;
   password: string;
   role: string;
+  address: string;
 }
 
 export interface ApiResponse<T> {
@@ -24,7 +24,7 @@ export interface ApiResponse<T> {
 // LOGIN
 export const login = async (dto: UserLoginDto): Promise<ApiResponse<any>> => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, dto);
+    const response = await axios.post(`${API_BASE_URL}/Auth/login`, dto);
     return response.data;
   } catch (error: any) {
     return {
@@ -40,7 +40,7 @@ export const register = async (
   dto: UserRegisterDto
 ): Promise<ApiResponse<any>> => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/register`, dto);
+    const response = await axios.post(`${API_BASE_URL}/Auth/register`, dto);
     return response.data;
   } catch (error: any) {
     return {

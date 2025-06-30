@@ -45,7 +45,7 @@ const Browse: FC = () => {
             rating: 4.5,
             reviewCount: 0,
             ownerName: v.ownerName,
-            location: "TP.HCM",
+            location: v.ownerAddress,
             status: v.status?.toLowerCase(),
             type: v.type?.toLowerCase().includes("underbone")
               ? "manual"

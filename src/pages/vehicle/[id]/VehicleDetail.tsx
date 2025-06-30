@@ -27,26 +27,6 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { getVehicleDetail } from "@/components/api/dashboardService";
 
-const mockReviews = [
-  {
-    id: "1",
-    user: "Trần Thị B",
-    avatar: "/placeholder.svg?height=32&width=32",
-    rating: 5,
-    date: "2 ngày trước",
-    comment:
-      "Xe rất đẹp và chạy êm. Chủ xe thân thiện, giao xe đúng giờ. Sẽ thuê lại lần sau!",
-  },
-  {
-    id: "2",
-    user: "Lê Văn C",
-    avatar: "/placeholder.svg?height=32&width=32",
-    rating: 4,
-    date: "1 tuần trước",
-    comment: "Xe tốt, giá hợp lý. Chỉ có điều giao xe hơi muộn một chút.",
-  },
-];
-
 const VehicleDetail: FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -76,7 +56,7 @@ const VehicleDetail: FC = () => {
             responseTime: "Trong vòng 1 giờ",
             joinDate: "Tham gia từ 2022",
           },
-          location: "TP.HCM", // giả định nếu chưa có location
+          location: data.ownerAddress, // giả định nếu chưa có location
           specifications: {
             year: data.year,
             brand: data.brand,
@@ -192,7 +172,7 @@ const VehicleDetail: FC = () => {
                   <div>
                     <CardTitle className="text-2xl">{vehicle?.name}</CardTitle>
                     <div className="flex items-center gap-2 mt-2">
-                      <RatingStars rating={vehicle?.rating} showNumber />
+                      <RatingStars rating={4} showNumber />
                       <span className="text-gray-600">
                         ({vehicle?.reviewCount} đánh giá)
                       </span>
@@ -342,42 +322,6 @@ const VehicleDetail: FC = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Reviews */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Đánh giá từ khách hàng</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {mockReviews.map((review) => (
-                  <div key={review.id} className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={review.avatar || "/placeholder.svg"}
-                        />
-                        <AvatarFallback>{review.user[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">
-                            {review.user}
-                          </span>
-                          <RatingStars rating={review.rating} size="sm" />
-                          <span className="text-xs text-gray-500">
-                            {review.date}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 mt-1">
-                          {review.comment}
-                        </p>
-                      </div>
-                    </div>
-                    <Separator />
-                  </div>
-                ))}
               </CardContent>
             </Card>
           </div>
