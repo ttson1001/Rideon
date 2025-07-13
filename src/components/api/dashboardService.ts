@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const API_BASE_URL = "https://rideonvn.online/api";
-export const BASE_URL = "https://rideonvn.online";
+export const API_BASE_URL = "https://api.rideonvn.online/api";
+export const BASE_URL = "https://api.rideonvn.online/";
 
 export const getOwnerDashboard = async (ownerId: number) => {
   const response = await axios.get(
