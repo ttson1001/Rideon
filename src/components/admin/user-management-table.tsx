@@ -159,7 +159,7 @@ export default function UserManagementTable() {
                   Ngày tham gia
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium">
-                  Hoạt động gần nhất
+                  Địa chỉ
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium">
                   Hành động
@@ -192,11 +192,7 @@ export default function UserManagementTable() {
                   <td className="px-6 py-4">
                     {format(new Date(user.joinDate), "dd/MM/yyyy")}
                   </td>
-                  <td className="px-6 py-4">
-                    {user.lastActive
-                      ? format(new Date(user.lastActive), "HH:mm dd/MM/yyyy")
-                      : "-"}
-                  </td>
+                  <td className="px-6 py-4">{user.address}</td>
                   <td className="px-6 py-4 space-x-2">
                     {user.status === "active" ? (
                       <Button

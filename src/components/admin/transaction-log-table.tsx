@@ -98,7 +98,7 @@ export default function TransactionLogTable() {
         <h1 className="text-2xl font-bold text-gray-900">
           {t("admin.transactions.title")}
         </h1>
-        <p className="text-gray-600">{t("admin.transactions.subtitle")}</p>
+        <p className="text-gray-600">Tất cả các giao dịch</p>
       </div>
 
       <div className="bg-white rounded-lg border">

@@ -13,11 +13,17 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
           variant: "default" as const,
           className: "bg-green-100 text-green-800 hover:bg-green-100",
         };
+      case "requested":
+        return {
+          label: "Đang yêu cầu",
+          variant: "default" as const,
+          className: "bg-blue-100 text-green-800 hover:bg-blue-100",
+        };
       case "approved":
         return {
           label: "Đang thuê",
           variant: "default" as const,
-          className: "bg-blue-100 text-green-800 hover:bg-blue-100",
+          className: "bg-orange-100 text-orange-800 hover:bg-orange-100",
         };
       case "refunded":
         return {
