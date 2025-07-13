@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const API_BASE_URL = "http://localhost:5177/api";
-export const BASE_URL = "http://localhost:5177";
+export const API_BASE_URL = "http://rideonvn.online/api";
+export const BASE_URL = "http://rideonvn.online";
 
 export const getOwnerDashboard = async (ownerId: number) => {
   const response = await axios.get(
@@ -88,6 +88,7 @@ export interface UserAdminDto {
   vehicleCount: number;
   rentalCount: number;
   joinDate: string;
+  address: string;
   lastActive?: string | null;
 }
 

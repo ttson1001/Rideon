@@ -192,7 +192,7 @@ export default function UserManagementTable() {
                   <td className="px-6 py-4">
                     {format(new Date(user.joinDate), "dd/MM/yyyy")}
                   </td>
-                  <td className="px-6 py-4">{user.address}</td>
+                  <td className="px-6 py-4">{user?.address}</td>
                   <td className="px-6 py-4 space-x-2">
                     {user.status === "active" ? (
                       <Button
