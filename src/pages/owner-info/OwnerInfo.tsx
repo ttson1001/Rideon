@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import logo from "@/assets/BecomeHost.png";
 
 const OwnerInfo: FC = () => {
   const benefits = [
@@ -135,7 +136,7 @@ const OwnerInfo: FC = () => {
 
             <div className="relative">
               <img
-                src="http://somith.site:8080/uploads/24d19934-c8fb-48ec-a142-c0899682ad8e.png"
+                src={logo}
                 alt="Become owner hero image"
                 className="rounded-full shadow-2xl w-full h-auto"
               />

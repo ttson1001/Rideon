@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SearchBar } from "@/components/shared/search-bar";
 import { FeaturedVehiclesSection } from "@/components/homepage/featured-vehicles-section";
 import { PopularDestinationsSlider } from "@/components/homepage/popular-destinations-slider";
-
+import banner from "@/assets/RideonBanner.png";
 const Home: FC = () => {
   const features = [
     {
@@ -77,7 +77,7 @@ const Home: FC = () => {
 
             <div className="relative">
               <img
-                src="http://somith.site:8080/uploads/6a84e92e-d856-450f-86e5-778166d57260.png"
+                src={banner}
                 alt="Motorbike rental hero image"
                 className="rounded-2xl shadow-2xl w-full h-auto"
               />
