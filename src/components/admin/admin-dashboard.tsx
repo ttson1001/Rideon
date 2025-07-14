@@ -1,6 +1,7 @@
-import { useApp } from "../../contexts/app-context";
 import AdminCard from "./admin-card";
 import { Car, Users, CreditCard, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getDashboardOverview, DashboardOverviewDto } from "../api/dashboardService";
 
 type StatColor = "blue" | "green" | "purple" | "red";
 
@@ -13,38 +14,77 @@ interface Stat {
 }
 
 export default function AdminDashboard() {
-  const { t } = useApp();
+  const [overview, setOverview] = useState<DashboardOverviewDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const data = await getDashboardOverview();
+        setOverview(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Không thể tải dữ liệu dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
   const stats: Stat[] = [
     {
-      title: t("stats.totalVehicles"),
-      value: "20",
-      change: "+12%",
+      title: "Tổng số xe",
+      value: loading ? "..." : overview?.totalVehicles.toString() || "0",
+      change: overview ? `${overview.activeVehicles} hoạt động` : "Đang tải...",
       icon: Car,
       color: "blue",
     },
     {
-      title: t("stats.totalUsers"),
-      value: "50",
-      change: "+8%",
+      title: "Tổng người dùng",
+      value: loading ? "..." : overview?.totalUsers.toString() || "0",
+      change: overview ? `${overview.activeUsers} hoạt động` : "Đang tải...",
       icon: Users,
       color: "green",
     },
     {
-      title: t("stats.monthlyRevenue"),
-      value: "₫3M",
-      change: "+15%",
+      title: "Tổng hoa hồng",
+      value: loading ? "..." : (overview ? formatCurrency(overview.totalCommission) : "₫0"),
+      change: overview ? `${(overview.commissionRate * 100).toFixed(1)}% từ tổng doanh thu` : "Đang tải...",
       icon: CreditCard,
       color: "purple",
     },
     {
-      title: t("stats.pendingReports"),
-      value: "10",
-      change: "-5%",
+      title: "Báo cáo chờ xử lý",
+      value: loading ? "..." : overview?.pendingReports.toString() || "0",
+      change: overview ? `${overview.pendingVehicles} xe chờ duyệt` : "Đang tải...",
       icon: AlertTriangle,
       color: "red",
     },
   ];
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="text-red-800 font-medium">Lỗi tải dữ liệu</h3>
+          <p className="text-red-600 text-sm mt-1">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -61,45 +101,87 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Hoạt động gần đây</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm">Xe Honda Wave mới được đăng ký</span>
-              <span className="text-xs text-gray-500">2 phút trước</span>
+          <h3 className="text-lg font-semibold mb-4">Thống kê chi tiết</h3>
+          {loading ? (
+            <div className="space-y-4">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
             </div>
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm">Người dùng mới: Nguyễn Văn A</span>
-              <span className="text-xs text-gray-500">5 phút trước</span>
+          ) : overview ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-sm text-gray-600">Tổng doanh thu</span>
+                <span className="font-semibold">{formatCurrency(overview.totalRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-sm text-gray-600">Doanh thu tháng này</span>
+                <span className="font-semibold">{formatCurrency(overview.monthlyRevenue)}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-sm text-gray-600">Tổng booking</span>
+                <span className="font-semibold">{overview.totalBookings}</span>
+              </div>
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-sm text-gray-600">Booking tháng này</span>
+                <span className="font-semibold">{overview.monthlyBookings}</span>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-sm text-gray-600">Tỷ lệ hoa hồng</span>
+                <span className="font-semibold text-purple-600">{(overview.commissionRate * 100).toFixed(1)}%</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between py-2 border-b">
-              <span className="text-sm">
-                Giao dịch ₫500,000 được hoàn thành
-              </span>
-              <span className="text-xs text-gray-500">10 phút trước</span>
-            </div>
-          </div>
+          ) : (
+            <p className="text-gray-500">Không có dữ liệu</p>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Thống kê nhanh</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Xe chờ duyệt</span>
-              <span className="font-semibold">2</span>
+          <h3 className="text-lg font-semibold mb-4">Trạng thái hệ thống</h3>
+          {loading ? (
+            <div className="space-y-4">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Giao dịch hôm nay</span>
-              <span className="font-semibold">12</span>
+          ) : overview ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Xe đang hoạt động</span>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">{overview.activeVehicles}</span>
+                  <span className="text-xs text-gray-500">/ {overview.totalVehicles}</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Người dùng hoạt động</span>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">{overview.activeUsers}</span>
+                  <span className="text-xs text-gray-500">/ {overview.totalUsers}</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Xe chờ duyệt</span>
+                <span className="font-semibold text-orange-600">{overview.pendingVehicles}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Báo cáo chờ xử lý</span>
+                <span className="font-semibold text-red-600">{overview.pendingReports}</span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Người dùng online</span>
-              <span className="font-semibold">10</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Báo cáo mới</span>
-              <span className="font-semibold text-red-600">7</span>
-            </div>
-          </div>
+          ) : (
+            <p className="text-gray-500">Không có dữ liệu</p>
+          )}
         </div>
       </div>
     </div>

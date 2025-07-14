@@ -87,15 +87,180 @@ export interface UserAdminDto {
   status: "active" | "blocked";
   vehicleCount: number;
   rentalCount: number;
-  joinDate: string;
-  address: string;
+  joinDate: string;  // Will map to JoinDate in C#
+  address: string;   // Will map to Address in C#
   lastActive?: string | null;
 }
 
-export const getUsers = async (): Promise<UserAdminDto[]> => {
+export interface UserFilter {
+  search?: string;
+  role?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export const getUsers = async (filter?: UserFilter): Promise<PaginatedResponse<UserAdminDto>> => {
+  try {
+    // Try OData first
+    const params = new URLSearchParams();
+    
+    // OData query parameters
+    if (filter?.page && filter?.pageSize) {
+      const skip = (filter.page - 1) * filter.pageSize;
+      params.append('$skip', skip.toString());
+      params.append('$top', filter.pageSize.toString());
+    }
+    
+    // Filter conditions
+    const filterConditions: string[] = [];
+    
+    if (filter?.search) {
+      filterConditions.push(`(contains(tolower(Name), '${filter.search.toLowerCase()}') or contains(tolower(Email), '${filter.search.toLowerCase()}'))`);
+    }
+    
+    if (filter?.role && filter.role !== 'all') {
+      filterConditions.push(`Role eq '${filter.role}'`);
+    }
+    
+    if (filter?.status && filter.status !== 'all') {
+      filterConditions.push(`Status eq '${filter.status}'`);
+    }
+    
+    if (filterConditions.length > 0) {
+      params.append('$filter', filterConditions.join(' and '));
+    }
+    
+    params.append('$count', 'true');
+    params.append('$orderby', 'JoinDate desc');
+    
+    const response = await axios.get(`${API_BASE_URL}/admin/users?${params.toString()}`);
+    
+    // Parse OData response
+    let data: UserAdminDto[];
+    let totalCount: number;
+    
+    if (response.data.value) {
+      // OData format response
+      data = response.data.value;
+      totalCount = response.data['@odata.count'] || response.data.value.length;
+    } else if (Array.isArray(response.data)) {
+      // Simple array response (fallback)
+      data = response.data;
+      totalCount = data.length;
+    } else {
+      // Handle other formats
+      data = [];
+      totalCount = 0;
+    }
+    
+    return {
+      data,
+      totalCount,
+      page: filter?.page || 1,
+      pageSize: filter?.pageSize || 20,
+      totalPages: Math.ceil(totalCount / (filter?.pageSize || 20))
+    };
+  } catch (error) {
+    console.error('OData request failed, falling back to simple endpoint:', error);
+    
+    // Fallback to simple endpoint
+    const response = await axios.get(`${API_BASE_URL}/admin/users/simple`);
+    let data = response.data as UserAdminDto[];
+    
+    // Apply client-side filtering
+    if (filter?.search) {
+      data = data.filter(user => 
+        user.name.toLowerCase().includes(filter.search!.toLowerCase()) ||
+        user.email.toLowerCase().includes(filter.search!.toLowerCase())
+      );
+    }
+    
+    if (filter?.role && filter.role !== 'all') {
+      data = data.filter(user => user.role === filter.role);
+    }
+    
+    if (filter?.status && filter.status !== 'all') {
+      data = data.filter(user => user.status === filter.status);
+    }
+    
+    // Apply client-side pagination
+    const totalCount = data.length;
+    const page = filter?.page || 1;
+    const pageSize = filter?.pageSize || 20;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    
+    data = data.slice(startIndex, endIndex);
+    
+    return {
+      data,
+      totalCount,
+      page,
+      pageSize,
+      totalPages: Math.ceil(totalCount / pageSize)
+    };
+  }
+};
+
+// Backup function for non-OData response
+export const getUsersSimple = async (): Promise<UserAdminDto[]> => {
   const response = await axios.get<UserAdminDto[]>(
-    `${API_BASE_URL}/admin/users`
+    `${API_BASE_URL}/admin/users/simple`
   );
+  return response.data;
+};
+
+// Debug function
+export const getUsersDebug = async (): Promise<any> => {
+  const response = await axios.get(`${API_BASE_URL}/admin/users/debug`);
+  return response.data;
+};
+
+// Debug function to test OData
+export const getUsersWithDebug = async (filter?: UserFilter): Promise<any> => {
+  const params = new URLSearchParams();
+  
+  if (filter?.page && filter?.pageSize) {
+    const skip = (filter.page - 1) * filter.pageSize;
+    params.append('$skip', skip.toString());
+    params.append('$top', filter.pageSize.toString());
+  }
+  
+  const filterConditions: string[] = [];
+  
+  if (filter?.search) {
+    filterConditions.push(`(contains(tolower(Name), '${filter.search.toLowerCase()}') or contains(tolower(Email), '${filter.search.toLowerCase()}'))`);
+  }
+  
+  if (filter?.role && filter.role !== 'all') {
+    filterConditions.push(`Role eq '${filter.role}'`);
+  }
+  
+  if (filter?.status && filter.status !== 'all') {
+    filterConditions.push(`Status eq '${filter.status}'`);
+  }
+  
+  if (filterConditions.length > 0) {
+    params.append('$filter', filterConditions.join(' and '));
+  }
+  
+  params.append('$count', 'true');
+  params.append('$orderby', 'JoinDate desc');
+  
+  console.log('OData URL:', `${API_BASE_URL}/admin/users?${params.toString()}`);
+  
+  const response = await axios.get(`${API_BASE_URL}/admin/users?${params.toString()}`);
+  console.log('OData Response:', response.data);
+  
   return response.data;
 };
 
@@ -238,3 +403,69 @@ export async function getReviewByBookingId(bookingId: number) {
   const res = await axios.get(API_BASE_URL + `/reviews/booking/${bookingId}`);
   return res.data;
 }
+
+// Statistics APIs
+export interface DashboardOverviewDto {
+  totalVehicles: number;
+  totalUsers: number;
+  totalCommission: number;
+  totalBookings: number;
+  activeVehicles: number;
+  activeUsers: number;
+  pendingVehicles: number;
+  pendingReports: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+  monthlyBookings: number;
+  commissionRate: number;
+}
+
+export interface VehicleStatisticsDto {
+  total: number;
+  active: number;
+  pending: number;
+  blocked: number;
+  approvedThisMonth: number;
+}
+
+export interface UserStatisticsDto {
+  total: number;
+  active: number;
+  blocked: number;
+  newThisMonth: number;
+  renters: number;
+  owners: number;
+  staff: number;
+  admins: number;
+}
+
+export interface RevenueStatisticsDto {
+  totalRevenue: number;
+  totalCommission: number;
+  monthlyRevenue: number;
+  monthlyCommission: number;
+  commissionRate: number;
+  totalBookings: number;
+  completedBookings: number;
+  monthlyBookings: number;
+}
+
+export const getDashboardOverview = async (): Promise<DashboardOverviewDto> => {
+  const response = await axios.get(`${API_BASE_URL}/admin/statistics/overview`);
+  return response.data.data;
+};
+
+export const getTotalVehiclesCount = async (): Promise<number> => {
+  const response = await axios.get(`${API_BASE_URL}/admin/statistics/vehicles-count`);
+  return response.data.data;
+};
+
+export const getTotalUsersCount = async (): Promise<number> => {
+  const response = await axios.get(`${API_BASE_URL}/admin/statistics/users-count`);
+  return response.data.data;
+};
+
+export const getTotalCommission = async (): Promise<number> => {
+  const response = await axios.get(`${API_BASE_URL}/admin/statistics/total-commission`);
+  return response.data.data;
+};

@@ -44,6 +44,9 @@ const VehicleDetail: FC = () => {
       if (!id) return;
       try {
         const data = await getVehicleDetail(id);
+        console.log("Vehicle data from API:", data);
+        console.log("Vehicle status:", data.status);
+        
         setVehicle({
           ...data,
           images: data.imageUrls ?? [],
@@ -75,6 +78,12 @@ const VehicleDetail: FC = () => {
     };
     fetchDetail();
   }, [id]);
+
+  // Debug effect to track date changes
+  useEffect(() => {
+    console.log("Date changed - Start:", selectedStartDate, "End:", selectedEndDate);
+    console.log("Button should be enabled:", selectedStartDate && selectedEndDate && vehicle?.status === "approved");
+  }, [selectedStartDate, selectedEndDate, vehicle?.status]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
@@ -359,6 +368,11 @@ const VehicleDetail: FC = () => {
                   }
                   onClick={() => {
                     console.log("Rent now button clicked.");
+                    console.log("selectedStartDate:", selectedStartDate);
+                    console.log("selectedEndDate:", selectedEndDate);
+                    console.log("vehicle?.status:", vehicle?.status);
+                    console.log("Button disabled?", !selectedStartDate || !selectedEndDate || vehicle?.status !== "approved");
+                    
                     if (selectedStartDate && selectedEndDate) {
                       const start = selectedStartDate
                         .toISOString()
