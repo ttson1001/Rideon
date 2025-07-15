@@ -76,25 +76,42 @@ const BookingConfirmation: FC = () => {
         insuranceFee: 20000,
       };
 
+      console.log("=== BOOKING CALCULATION DEBUG ===");
+      console.log("Vehicle price per day:", vehicle.pricePerDay);
+      console.log("Number of days:", days);
+      console.log("Total rental amount:", total);
+      console.log("Commission rate:", commissionRate);
+      console.log("Deposit amount (for PayOS):", total * commissionRate);
+      console.log("Booking DTO:", dto);
+
       // 1. Gọi API tạo booking
       const bookingRes = await postBooking(dto);
+      console.log("Booking response:", bookingRes);
       const bookingId = bookingRes?.data;
 
       if (!bookingId) throw new Error("Không lấy được bookingId");
 
-      // 2. Gọi API backend tạo link thanh toán PayOS
+      // 2. Gọi API backend tạo link thanh toán PayOS - CHỈ THANH TOÁN ĐẶT CỌC
+      const depositAmount = Math.round(total * commissionRate); // Làm tròn thành integer
+      console.log("PayOS create request payload:", { bookingId, amount: depositAmount });
       const paymentRes = await fetch(API_BASE_URL + "/Payment/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId,
-          amount: total, // hoặc chỉ cần đặt cọc (total * commissionRate)
+          amount: depositAmount, // CHỈ thanh toán đặt cọc, không phải toàn bộ
         }),
       });
 
-      if (!paymentRes.ok) throw new Error("Tạo link thanh toán thất bại");
+      if (!paymentRes.ok) {
+        const errorText = await paymentRes.text();
+        console.error("PayOS API Error:", errorText);
+        throw new Error(`Tạo link thanh toán thất bại: ${paymentRes.status}`);
+      }
 
-      const { paymentUrl } = await paymentRes.json();
+      const paymentResult = await paymentRes.json();
+      console.log("PayOS response:", paymentResult);
+      const { paymentUrl } = paymentResult;
 
       // 3. Mở tab thanh toán PayOS
       window.open(paymentUrl, "_blank");
@@ -105,6 +122,10 @@ const BookingConfirmation: FC = () => {
         description: "Đang chuyển đến trang thanh toán...",
       });
     } catch (err: any) {
+      console.error("=== BOOKING ERROR DEBUG ===");
+      console.error("Full error:", err);
+      console.error("Error response:", err?.response?.data);
+      
       const errorMessage =
         err?.response?.data?.message || err.message || "Có lỗi xảy ra";
       toast({
@@ -266,8 +287,12 @@ const BookingConfirmation: FC = () => {
                     <span>{total.toLocaleString()}đ</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
-                    <span>Đặt cọc</span>
-                    <span>{(total * commissionRate)?.toLocaleString()}đ</span>
+                    <span>Đặt cọc (thanh toán ngay)</span>
+                    <span>{Math.round(total * commissionRate)?.toLocaleString()}đ</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Còn lại (thanh toán khi nhận xe)</span>
+                    <span>{(total - Math.round(total * commissionRate))?.toLocaleString()}đ</span>
                   </div>
                 </div>
                 <Button

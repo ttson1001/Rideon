@@ -23,6 +23,9 @@ export default function AdminDashboard() {
       try {
         setLoading(true);
         const data = await getDashboardOverview();
+        console.log('Dashboard data received:', data);
+        console.log('Total commission:', data.totalCommission);
+        console.log('Total revenue:', data.totalRevenue);
         setOverview(data);
         setError(null);
       } catch (err) {
@@ -60,9 +63,9 @@ export default function AdminDashboard() {
       color: "green",
     },
     {
-      title: "Tổng hoa hồng",
+      title: "Tổng doanh thu",
       value: loading ? "..." : (overview ? formatCurrency(overview.totalCommission) : "₫0"),
-      change: overview ? `${(overview.commissionRate * 100).toFixed(1)}% từ tổng doanh thu` : "Đang tải...",
+      change: overview ? `${(overview.commissionRate * 100).toFixed(1)}% từ tổng booking` : "Đang tải...",
       icon: CreditCard,
       color: "purple",
     },
@@ -116,7 +119,7 @@ export default function AdminDashboard() {
           ) : overview ? (
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-gray-600">Tổng doanh thu</span>
+                <span className="text-sm text-gray-600">Tổng booking amount</span>
                 <span className="font-semibold">{formatCurrency(overview.totalRevenue)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">

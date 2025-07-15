@@ -42,16 +42,43 @@ export default function TransactionLogTable() {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
+        // 1. Test backend connection
+        console.log("Testing backend connection...");
+        
+        try {
+          const testRes = await axios.get(`${API_BASE_URL}/admin/statistics/test`);
+          console.log("Statistics endpoint test:", testRes.data);
+        } catch (err) {
+          console.error("Statistics endpoint test failed:", err);
+        }
+
+        try {
+          const testRes2 = await axios.get(`${API_BASE_URL}/bookings/test`);
+          console.log("Bookings endpoint test:", testRes2.data);
+        } catch (err) {
+          console.error("Bookings endpoint test failed:", err);
+        }
+
+        // 2. Lấy commission rate từ API
+        const commissionRes = await axios.get(`${API_BASE_URL}/admin/statistics/commission-rate`);
+        const commission = commissionRes.data * 100; // Convert to percentage
+
+        console.log("Commission rate from API:", commission + "%");
+
+        // 3. Lấy danh sách transactions
         const res = await axios.get(
           `${API_BASE_URL}/bookings/detail/transactions`
         );
         const data: BookingDetailDto[] = res.data.data;
 
+        console.log("Raw booking data:", data); // Debug log
+
         const mapped = data.map((b) => {
           const rentalFee = b.pricing.totalRental;
-          const commissionRate = 20;
-          const platformFee = Math.round(rentalFee * (commissionRate / 100));
+          const platformFee = Math.round(rentalFee * (commission / 100));
           const amountToOwner = rentalFee - platformFee;
+
+          console.log(`Booking ${b.id}: rental=${rentalFee}, commission=${commission}%, fee=${platformFee}, toOwner=${amountToOwner}`);
 
           return {
             id: b.id.toString(),
@@ -63,7 +90,7 @@ export default function TransactionLogTable() {
             date: b.rental.startDate.split("T")[0],
             status: b.status as Transaction["status"],
             vehicleName: b.vehicle.name,
-            commissionRate,
+            commissionRate: commission,
           };
         });
 
