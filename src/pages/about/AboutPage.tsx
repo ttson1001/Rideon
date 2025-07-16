@@ -34,29 +34,35 @@ const AboutPage: FC = () => {
 
   const teamMembers = [
     {
-      name: "Nguyễn Văn An",
-      role: "CEO & Founder",
-      image: "/placeholder.svg?height=300&width=300",
-      description: "Với hơn 10 năm kinh nghiệm trong lĩnh vực công nghệ và du lịch",
+      name: "Đoàn Thành Nhân",
+      role: "IT Developer",
+      image: "https://res.cloudinary.com/dpuqzae6p/image/upload/v1740855637/TeamMember/iughyj3sq168gdjuksxh.jpg",
     },
     {
-      name: "Trần Thị Bình",
-      role: "CTO",
-      image: "/placeholder.svg?height=300&width=300",
-      description: "Chuyên gia công nghệ với kinh nghiệm phát triển ứng dụng di động",
+      name: "Nguyễn Minh Khai",
+      role: "IT Developer",
+      image: "https://res.cloudinary.com/dpuqzae6p/image/upload/v1740855640/TeamMember/njdbizwnrpwsfaknekyv.jpg",
     },
     {
-      name: "Lê Minh Cường",
-      role: "Head of Operations",
-      image: "/placeholder.svg?height=300&width=300",
-      description: "Quản lý vận hành với chuyên môn về logistics và dịch vụ khách hàng",
+      name: "Đỗ Hoàng Gia",
+      role: "IT Developer",
+      image: "https://res.cloudinary.com/dpuqzae6p/image/upload/v1740883020/TeamMember/katnoj7bpdhwjdhyufav.jpg",
     },
     {
-      name: "Phạm Thu Dung",
-      role: "Marketing Director",
-      image: "/placeholder.svg?height=300&width=300",
-      description: "Chuyên gia marketing với kinh nghiệm xây dựng thương hiệu",
+      name: "Lê Huỳnh Ngọc Yến",
+      role: "International Business",
+      image: "https://res.cloudinary.com/dpuqzae6p/image/upload/v1740855668/TeamMember/p1i1v0bawao8jtd1pyh3.jpg",
     },
+	{
+      name: "Đặng Hoàng Oanh",
+      role: "International Business",
+      image: "https://res.cloudinary.com/dpuqzae6p/image/upload/v1740855671/TeamMember/bzgw9lnfcl8dblw5wzsc.jpg",
+    },
+{
+      name: "Lê Thái Hiền",
+      role: "Digital Marketing",
+      image: "https://res.cloudinary.com/dpuqzae6p/image/upload/v1740855672/TeamMember/g4zgvslcpqbvq4jpkgn7.jpg",
+    }
   ]
 
   return (
@@ -168,7 +174,6 @@ const AboutPage: FC = () => {
                 <CardContent className="p-6">
                   <h4 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h4>
                   <p className="text-blue-600 font-semibold mb-3">{member.role}</p>
-                  <p className="text-gray-600 text-sm leading-relaxed">{member.description}</p>
                 </CardContent>
               </Card>
             ))}
